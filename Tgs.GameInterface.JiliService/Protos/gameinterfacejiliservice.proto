@@ -1,0 +1,136 @@
+syntax = "proto3";
+
+import "phoenix/protobuf/decimal.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Tgs.GameInterface.JiliService.Protos";
+
+package GameInterfaceJiliService;
+
+// The greeting service definition.
+service GameInterfaceJiliService {
+  // Sends a greeting
+  rpc CreatePlayer (GameInterfaceJiliServiceCreatePlayerRequest) returns (GameInterfaceJiliServiceReply);
+  rpc FundIn (GameInterfaceJiliServiceFundRequest) returns (GameInterfaceJiliServiceFundReply);
+  rpc FundOrderChecking(GameInterfaceJiliServiceFundOrderCheckingRequest) returns (GameInterfaceJiliServiceFundOrderCheckingReply);
+  rpc FundOut (GameInterfaceJiliServiceFundRequest) returns (GameInterfaceJiliServiceFundReply);
+  rpc GetBalance (GameInterfaceJiliServiceBalanceRequest) returns (GameInterfaceJiliServiceBalanceReply);
+  rpc KickPlayer (GameInterfaceJiliServiceKickPlayerRequest) returns (GameInterfaceJiliServiceReply);
+  rpc GameUrlByAwcAeLotto (GameInterfaceJiliServiceGameUrlRequest) returns (GameInterfaceJiliServiceGameUrlReply);
+  rpc GamePullRecordByAwcAeLotto (GameInterfaceJiliServiceGamePullRecordeRequest) returns (GameInterfaceJiliServiceGamePullRecordReply);
+}
+
+// The request message containing the user's name.
+message GameInterfaceJiliServiceFundRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string player_code = 4;
+	string transaction_id = 5;
+	phoenix.protobuf.DecimalValue amount = 6;
+}
+
+message GameInterfaceJiliServiceFundOrderCheckingRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string transaction_id = 4;
+}
+
+message GameInterfaceJiliServiceBalanceRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string player_code = 4;
+}
+
+message GameInterfaceJiliServiceKickPlayerRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string player_code = 4;
+}
+
+message GameInterfaceJiliServiceCreatePlayerRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string player_code = 4;
+}
+
+message GameInterfaceJiliServiceGameUrlRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string player_code = 4;
+	string external_game_id = 5;
+	string language = 6;
+}
+
+message GameInterfaceJiliServiceGamePullRecordeRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	google.protobuf.Timestamp start_time = 4; 
+	google.protobuf.Timestamp end_time = 5;
+	int32 page = 6;
+	int32 page_limit = 7;
+}
+
+// The response message containing the greetings.
+message GameInterfaceJiliServiceReply {
+	bool success = 1;
+}
+
+message GameInterfaceJiliServiceFundReply {
+	bool success = 1;
+	string message = 2;
+	string transaction_id = 3;
+	phoenix.protobuf.DecimalValue coin_before = 4;
+	phoenix.protobuf.DecimalValue coin_after = 5;
+	phoenix.protobuf.DecimalValue currency_before = 6;
+	phoenix.protobuf.DecimalValue currency_after = 7;
+}
+
+message GameInterfaceJiliServiceFundOrderCheckingReply {
+	bool exist = 1;
+}
+
+message GameInterfaceJiliServiceBalanceReply {
+	bool success = 1;
+	string message = 2;
+	bool is_player_exist = 3;
+	phoenix.protobuf.DecimalValue balance = 4;
+}
+
+message GameInterfaceJiliServiceGameUrlReply {
+	bool success = 1;
+	string message = 2;
+	bool is_player_exist = 3;
+	string game_url = 4;
+}
+
+message GameInterfaceJiliServiceGamePullRecordReply {
+	repeated GameInterfaceJiliServiceGamePullRecord items = 1;
+}
+
+message GameInterfaceJiliServiceGamePullRecord {
+	string account = 1;
+	string wagers_id = 2;
+    int32 game_id = 3;
+	google.protobuf.Timestamp wagers_time = 4;
+	phoenix.protobuf.DecimalValue bet_amount = 5;
+	google.protobuf.Timestamp payoff_time = 6;
+	phoenix.protobuf.DecimalValue payoff_amount = 7;
+	GameInterfaceJiliServiceGamePullRecordStatus Status = 8;
+	google.protobuf.Timestamp settlement_time = 9;
+	int32 game_category_id = 10;
+	int32 type = 11;
+	string agent_id = 12;
+}
+
+enum GameInterfaceJiliServiceGamePullRecordStatus {
+  JILI_STATUS_UNKNOWN = 0;
+  JILI_STATUS_WIN = 1;
+  JILI_STATUS_LOSE = 2;
+}
