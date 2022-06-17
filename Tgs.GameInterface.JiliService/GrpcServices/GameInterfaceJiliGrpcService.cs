@@ -110,7 +110,7 @@ namespace Tgs.GameInterface.JiliService.GrpcServices
             };
         }
 
-        public override async Task<GameInterfaceJiliServiceGamePullRecordReply> GamePullRecordByAwcAeLotto(GameInterfaceJiliServiceGamePullRecordeRequest request, ServerCallContext context)
+        public override async Task<GameInterfaceJiliServiceGamePullRecordReply> GamePullRecord(GameInterfaceJiliServiceGamePullRecordeRequest request, ServerCallContext context)
         {
             var result = await _gameRecordService.QueryAsync(new GameRecordQuery(
                 ApiUrl: new(request.ApiUrl),
@@ -150,7 +150,7 @@ namespace Tgs.GameInterface.JiliService.GrpcServices
             return reply;
         }
 
-        public override async Task<GameInterfaceJiliServiceGameUrlReply> GameUrlByAwcAeLotto(GameInterfaceJiliServiceGameUrlRequest request, ServerCallContext context)
+        public override async Task<GameInterfaceJiliServiceGameUrlReply> GameUrl(GameInterfaceJiliServiceGameUrlRequest request, ServerCallContext context)
         {
             var result = await _gameUrlService.GetAsync(new GameUrlQuery(
                  ApiUrl: new(request.ApiUrl),

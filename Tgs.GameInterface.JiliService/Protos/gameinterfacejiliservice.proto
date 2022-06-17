@@ -16,8 +16,8 @@ service GameInterfaceJiliService {
   rpc FundOut (GameInterfaceJiliServiceFundRequest) returns (GameInterfaceJiliServiceFundReply);
   rpc GetBalance (GameInterfaceJiliServiceBalanceRequest) returns (GameInterfaceJiliServiceBalanceReply);
   rpc KickPlayer (GameInterfaceJiliServiceKickPlayerRequest) returns (GameInterfaceJiliServiceReply);
-  rpc GameUrlByAwcAeLotto (GameInterfaceJiliServiceGameUrlRequest) returns (GameInterfaceJiliServiceGameUrlReply);
-  rpc GamePullRecordByAwcAeLotto (GameInterfaceJiliServiceGamePullRecordeRequest) returns (GameInterfaceJiliServiceGamePullRecordReply);
+  rpc GameUrl (GameInterfaceJiliServiceGameUrlRequest) returns (GameInterfaceJiliServiceGameUrlReply);
+  rpc GamePullRecord (GameInterfaceJiliServiceGamePullRecordeRequest) returns (GameInterfaceJiliServiceGamePullRecordReply);
 }
 
 // The request message containing the user's name.
