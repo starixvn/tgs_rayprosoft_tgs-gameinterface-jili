@@ -16,8 +16,8 @@ service GameInterfaceJiliService {
   rpc FundOut (GameInterfaceJiliServiceFundRequest) returns (GameInterfaceJiliServiceFundReply);
   rpc GetBalance (GameInterfaceJiliServiceBalanceRequest) returns (GameInterfaceJiliServiceBalanceReply);
   rpc KickPlayer (GameInterfaceJiliServiceKickPlayerRequest) returns (GameInterfaceJiliServiceReply);
-  rpc GameUrl (GameInterfaceJiliServiceGameUrlRequest) returns (GameInterfaceJiliServiceGameUrlReply);
-  rpc GamePullRecord (GameInterfaceJiliServiceGamePullRecordeRequest) returns (GameInterfaceJiliServiceGamePullRecordReply);
+  rpc GetGameUrl (GameInterfaceJiliServiceGameUrlRequest) returns (GameInterfaceJiliServiceGameUrlReply);
+  rpc GetGamePullRecord (GameInterfaceJiliServiceGamePullRecordRequest) returns (GameInterfaceJiliServiceGamePullRecordReply);
 }
 
 // The request message containing the user's name.
@@ -67,7 +67,7 @@ message GameInterfaceJiliServiceGameUrlRequest {
 	string language = 6;
 }
 
-message GameInterfaceJiliServiceGamePullRecordeRequest {
+message GameInterfaceJiliServiceGamePullRecordRequest {
 	string api_url = 1;
 	string agent_id = 2;
 	string agent_key = 3;

@@ -1,8 +1,8 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Tgs.GameInterface.JiliService.Core.ApplicationServices;
-using Tgs.ServiceUtility;
 using Tgs.GameInterface.JiliService.Protos;
+using Tgs.ServiceUtility;
 
 namespace Tgs.GameInterface.JiliService.GrpcServices
 {
@@ -110,7 +110,24 @@ namespace Tgs.GameInterface.JiliService.GrpcServices
             };
         }
 
-        public override async Task<GameInterfaceJiliServiceGamePullRecordReply> GamePullRecord(GameInterfaceJiliServiceGamePullRecordeRequest request, ServerCallContext context)
+        public override async Task<GameInterfaceJiliServiceBalanceReply> GetBalance(GameInterfaceJiliServiceBalanceRequest request, ServerCallContext context)
+        {
+            var result = await _balanceService.GetAsync(new BalanceQuery(
+                 ApiUrl: new(request.ApiUrl),
+                 AgentId: request.AgentId,
+                 AgentKey: request.AgentKey,
+                 PlayerCode: request.PlayerCode)).ConfigureAwait(false);
+
+            return new GameInterfaceJiliServiceBalanceReply()
+            {
+                Success = result.Success,
+                Message = result.Message ?? String.Empty,
+                IsPlayerExist = result.IsPlayerExist,
+                Balance = result.Balance
+            };
+        }
+
+        public override async Task<GameInterfaceJiliServiceGamePullRecordReply> GetGamePullRecord(GameInterfaceJiliServiceGamePullRecordRequest request, ServerCallContext context)
         {
             var result = await _gameRecordService.QueryAsync(new GameRecordQuery(
                 ApiUrl: new(request.ApiUrl),
@@ -150,7 +167,7 @@ namespace Tgs.GameInterface.JiliService.GrpcServices
             return reply;
         }
 
-        public override async Task<GameInterfaceJiliServiceGameUrlReply> GameUrl(GameInterfaceJiliServiceGameUrlRequest request, ServerCallContext context)
+        public override async Task<GameInterfaceJiliServiceGameUrlReply> GetGameUrl(GameInterfaceJiliServiceGameUrlRequest request, ServerCallContext context)
         {
             var result = await _gameUrlService.GetAsync(new GameUrlQuery(
                  ApiUrl: new(request.ApiUrl),
@@ -166,23 +183,6 @@ namespace Tgs.GameInterface.JiliService.GrpcServices
                 Message = result.Message ?? String.Empty,
                 IsPlayerExist = result.IsPlayerExist,
                 GameUrl = result.GameUrl
-            };
-        }
-
-        public override async Task<GameInterfaceJiliServiceBalanceReply> GetBalance(GameInterfaceJiliServiceBalanceRequest request, ServerCallContext context)
-        {
-            var result = await _balanceService.GetAsync(new BalanceQuery(
-                 ApiUrl: new(request.ApiUrl),
-                 AgentId: request.AgentId,
-                 AgentKey: request.AgentKey,
-                 PlayerCode: request.PlayerCode)).ConfigureAwait(false);
-
-            return new GameInterfaceJiliServiceBalanceReply()
-            {
-                Success = result.Success,
-                Message = result.Message ?? String.Empty,
-                IsPlayerExist = result.IsPlayerExist,
-                Balance = result.Balance
             };
         }
 

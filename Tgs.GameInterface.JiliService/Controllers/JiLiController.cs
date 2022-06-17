@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Tgs.GameInterface.JiliService.Core.ApplicationServices;
-using Tgs.GameInterface.JiliService.ViewModels;
 using Tgs.GameInterface.JiliService.Protos;
+using Tgs.GameInterface.JiliService.ViewModels;
 using Tgs.ServiceUtility;
 
 namespace Tgs.GameInterface.JiliService.Controllers
