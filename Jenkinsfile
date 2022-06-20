@@ -70,7 +70,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'dotnet build "Tgs.GameInterface.JiliService.Client/Tgs.GameInterface.JiliService.Client.csproj" -c $BuildConfiguration -t:ContainerBuild -p:DockerfileTag="$ImageName:${TAG}" --no-restore '
+                sh 'dotnet build "Tgs.GameInterface.JiliService/Tgs.GameInterface.JiliService.csproj" -c $BuildConfiguration -t:ContainerBuild -p:DockerfileTag="$ImageName:${TAG}" --no-restore '
             }
         }
 
