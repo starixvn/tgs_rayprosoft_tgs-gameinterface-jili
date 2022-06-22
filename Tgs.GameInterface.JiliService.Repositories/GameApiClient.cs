@@ -283,7 +283,7 @@ namespace Tgs.GameInterface.JiliService.Repositories
                 WagersId = transaction.GetProperty("WagersId").ToString(),
                 GameId = transaction.GetProperty("GameId").GetInt32(),
                 WagersTime = DateTimeOffset.Parse(transaction.GetProperty("WagersTime").ToString()),
-                BetAmount = transaction.GetProperty("BetAmount").GetDecimal(),
+                BetAmount = -transaction.GetProperty("BetAmount").GetDecimal(),
                 PayoffTime = DateTimeOffset.Parse(transaction.GetProperty("PayoffTime").ToString()),
                 PayoffAmount = transaction.GetProperty("PayoffAmount").GetDecimal(),
                 Status = (JiLiStatus)transaction.GetProperty("Status").GetInt32(),

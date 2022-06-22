@@ -73,6 +73,8 @@ namespace Tgs.GameInterface.JiliService.Repositories.UnitTest
 
             Assert.IsNotNull(atual);
             Assert.AreEqual(true, atual.Success);
+            Assert.IsNotNull(atual.Transactions);
+            Assert.IsTrue(atual.Transactions.Single().BetAmount > 0);
         }
     }
 }
