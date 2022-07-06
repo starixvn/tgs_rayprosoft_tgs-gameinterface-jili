@@ -6,7 +6,7 @@ pipeline {
     
     environment {
         BuildConfiguration="Debug"
-        ImageName="harbor.rpgp.cc/tgs/game-gameinterface-jili-service"
+        ImageName="pgtgs/game-gameinterface-jili-service"
     }
 
     stages {
