@@ -223,8 +223,8 @@ namespace Tgs.GameInterface.JiliService.Repositories
             endTime = TimeZoneInfo.ConvertTimeFromUtc(endTime, cuiabaTime);
             var parameters = new Dictionary<string, string>
             {
-                ["StartTime"] = startTime.ToString("yyyy-MM-ddThh:mm:ss"),
-                ["EndTime"] = endTime.ToString("yyyy-MM-ddThh:mm:ss"),
+                ["StartTime"] = startTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+                ["EndTime"] = endTime.ToString("yyyy-MM-ddTHH:mm:ss"),
                 ["Page"] = page.ToString(),
                 ["PageLimit"] = pageLimit.ToString(),
                 ["AgentId"] = agentId
