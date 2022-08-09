@@ -233,6 +233,7 @@ namespace Tgs.GameInterface.JiliService.Repositories
             var keyGen = GetKeyGen(agentId, agentKey);
             var key = GetKey(keyGen, parameters);
             parameters["Key"] = key;
+            parameters["FilterAgent"] = "1";
 
             var document = await GetAsync(
                            apiUrl,
