@@ -11,532 +11,531 @@ using Tgs.GameInterface.JiliService.Core;
 using Tgs.GameInterface.JiliService.Core.Models;
 using Tgs.Logging;
 
-namespace Tgs.GameInterface.JiliService.Repositories
+namespace Tgs.GameInterface.JiliService.Repositories;
+
+internal class GameApiClient : IGameApiClient
 {
-    internal class GameApiClient : IGameApiClient
+    private static readonly JsonSerializerOptions? _SerializerOptions = new()
     {
-        private static readonly JsonSerializerOptions? _SerializerOptions = new()
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters =
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            Converters =
-            {
-                new JsonStringEnumConverter()
-            }
+            new JsonStringEnumConverter()
+        }
+    };
+
+    private readonly HttpClient _client;
+    private readonly ILogger<GameApiClient> _logger;
+    private readonly ITgsLog _tgsLog;
+
+    public GameApiClient(
+        HttpClient client,
+        ILogger<GameApiClient> logger,
+        ITgsLog tgsLog)
+    {
+        _client = client ?? throw new ArgumentNullException(nameof(client));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _tgsLog = tgsLog ?? throw new ArgumentNullException(nameof(tgsLog));
+    }
+
+    public async ValueTask<bool> CheckTransferByTransactionIdAsync(Uri apiUrl, string agentId, string agentKey, string transactionId, CancellationToken cancellationToken = default)
+    {
+        var parameters = new Dictionary<string, string>
+        {
+            ["TransactionId"] = transactionId,
+            ["AgentId"] = agentId
         };
 
-        private readonly HttpClient _client;
-        private readonly ILogger<GameApiClient> _logger;
-        private readonly ITgsLog _tgsLog;
+        var keyGen = GetKeyGen(agentId, agentKey);
+        var key = GetKey(keyGen, parameters);
+        parameters["Key"] = key;
 
-        public GameApiClient(
-            HttpClient client,
-            ILogger<GameApiClient> logger,
-            ITgsLog tgsLog)
+        var document = await PostAsync(
+            apiUrl,
+            "/api1/CheckTransferByTransactionId",
+            parameters,
+            "CheckTransferByTransactionId",
+            cancellationToken).ConfigureAwait(false);
+
+        if (document is null)
         {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _tgsLog = tgsLog ?? throw new ArgumentNullException(nameof(tgsLog));
+            throw new Exception("Document is empty.");
         }
 
-        public async ValueTask<bool> CheckTransferByTransactionIdAsync(Uri apiUrl, string agentId, string agentKey, string transactionId, CancellationToken cancellationToken = default)
+        if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
         {
-            var parameters = new Dictionary<string, string>
-            {
-                ["TransactionId"] = transactionId,
-                ["AgentId"] = agentId
-            };
-
-            var keyGen = GetKeyGen(agentId, agentKey);
-            var key = GetKey(keyGen, parameters);
-            parameters["Key"] = key;
-
-            var document = await PostAsync(
-                apiUrl,
-                "/api1/CheckTransferByTransactionId",
-                parameters,
-                "CheckTransferByTransactionId",
-                cancellationToken).ConfigureAwait(false);
-
-            if (document is null)
-            {
-                throw new Exception("Document is empty.");
-            }
-
-            if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
-            {
-                throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
-            }
-
-            var errorCode = jsonErrorCode.ToString();
-
-            if (errorCode is not "0" and not "101")
-            {
-                throw new Exception($"This game manufacturer's transfer order number does not exist.({transactionId})");
-            }
-
-            if (errorCode is "101")
-            {
-                return false;
-            }
-
-            var data = document.RootElement.GetProperty("Data");
-
-            var status = data.GetProperty("Status").GetInt32();
-
-            return status == 1;
+            throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
         }
 
-        public async ValueTask CreateMemberAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, CancellationToken cancellationToken = default)
+        var errorCode = jsonErrorCode.ToString();
+
+        if (errorCode is not "0" and not "101")
         {
-            var parameters = new Dictionary<string, string>
-            {
-                ["Account"] = playerCode,
-                ["AgentId"] = agentId
-            };
-
-            var keyGen = GetKeyGen(agentId, agentKey);
-            var key = GetKey(keyGen, parameters);
-            parameters["Key"] = key;
-
-            var document = await PostAsync(
-                            apiUrl,
-                            "/api1/CreateMember",
-                            parameters,
-                            "CreateMember",
-                            cancellationToken).ConfigureAwait(false);
-
-            if (document is null)
-            {
-                throw new Exception("Document is empty.");
-            }
-
-            if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
-            {
-                throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
-            }
-
-            var errorCode = jsonErrorCode.ToString();
-
-            if (errorCode is not "0" and not "101")
-            {
-                throw new Exception($"Failed to create player.({playerCode})");
-            }
+            throw new Exception($"This game manufacturer's transfer order number does not exist.({transactionId})");
         }
 
-        public async ValueTask<ExchangeTransferByAgentIdResult> ExchangeTransferByAgentIdAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, string transactionId, TransferType transferType, decimal amount, CancellationToken cancellationToken = default)
+        if (errorCode is "101")
         {
-            amount *= 10000;
-            amount = Math.Floor(amount);
-            amount /= 10000;
+            return false;
+        }
 
-            var parameters = new Dictionary<string, string>
-            {
-                ["Account"] = playerCode,
-                ["TransactionId"] = transactionId,
-                ["Amount"] = amount.ToString(),
-                ["TransferType"] = ((int)transferType).ToString("d"),
-                ["AgentId"] = agentId
-            };
+        var data = document.RootElement.GetProperty("Data");
 
-            var keyGen = GetKeyGen(agentId, agentKey);
-            var key = GetKey(keyGen, parameters);
-            parameters["Key"] = key;
+        var status = data.GetProperty("Status").GetInt32();
 
-            var tryCount = 3;
-            var retryPolicy = Policy.HandleResult<JsonDocument?>(r =>
-            {
-                var errorCode = r?.RootElement.GetProperty("ErrorCode").ToString();
-                return errorCode == "106";
-            })
-             .WaitAndRetryAsync(tryCount,
-                 retryAttempt => TimeSpan.FromSeconds(Random.Shared.Next(1, maxValue: 20)),
-                 (result, retryTime, context) =>
-                 {
-                     _logger.LogWarning("LogOn:{logOn}  Parameter:{parameters} Result:{result} Delay:{retryTime}",
-                         DateTime.Now.ToString("o"),
-                         parameters,
-                         result,
-                         retryTime);
-                 });
+        return status == 1;
+    }
 
-            var document = await retryPolicy.ExecuteAsync(async () => await PostAsync(apiUrl, "/api1/ExchangeTransferByAgentId", parameters, "ExchangeTransferByAgentId", cancellationToken));
+    public async ValueTask CreateMemberAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, CancellationToken cancellationToken = default)
+    {
+        var parameters = new Dictionary<string, string>
+        {
+            ["Account"] = playerCode,
+            ["AgentId"] = agentId
+        };
 
-            if (document is null)
-            {
-                throw new Exception("Document is empty.");
-            }
+        var keyGen = GetKeyGen(agentId, agentKey);
+        var key = GetKey(keyGen, parameters);
+        parameters["Key"] = key;
 
-            if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
-            {
-                throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
-            }
+        var document = await PostAsync(
+                        apiUrl,
+                        "/api1/CreateMember",
+                        parameters,
+                        "CreateMember",
+                        cancellationToken).ConfigureAwait(false);
 
-            var errorCode = jsonErrorCode.ToString();
+        if (document is null)
+        {
+            throw new Exception("Document is empty.");
+        }
 
-            if (errorCode is not "0")
-            {
-                return new ExchangeTransferByAgentIdResult(
-                    Success: false,
-                    Message: document.RootElement.GetProperty("Message").ToString());
-            }
+        if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
+        {
+            throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
+        }
 
-            var data = document.RootElement.GetProperty("Data");
+        var errorCode = jsonErrorCode.ToString();
 
-            if (!data.TryGetProperty("TransactionId", out var jsonGameProductTransactionId) ||
-                !data.TryGetProperty("CoinBefore", out var jsonCoinBefore) ||
-                !data.TryGetProperty("CoinAfter", out var jsonCoinAfter) ||
-                !data.TryGetProperty("CurrencyBefore", out var jsonCurrencyBefore) ||
-                !data.TryGetProperty("CurrencyAfter", out var jsonCurrencyAfter) ||
-                !data.TryGetProperty("Status", out var jsonStatus))
+        if (errorCode is not "0" and not "101")
+        {
+            throw new Exception($"Failed to create player.({playerCode})");
+        }
+    }
 
-            {
-                throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
-            }
-            var success = jsonStatus.GetInt16() == 1;
+    public async ValueTask<ExchangeTransferByAgentIdResult> ExchangeTransferByAgentIdAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, string transactionId, TransferType transferType, decimal amount, CancellationToken cancellationToken = default)
+    {
+        amount *= 10000;
+        amount = Math.Floor(amount);
+        amount /= 10000;
 
-            var coinBefore = default(decimal);
-            var coinAfter = default(decimal);
-            var currencyBefore = default(decimal);
-            var CurrencyAfter = default(decimal);
-            if (success)
-            {
-                _ = jsonCoinBefore.TryGetDecimal(out coinBefore);
-                _ = jsonCoinAfter.TryGetDecimal(out coinAfter);
-                _ = jsonCurrencyBefore.TryGetDecimal(out currencyBefore);
-                _ = jsonCurrencyAfter.TryGetDecimal(out CurrencyAfter);
-            }
+        var parameters = new Dictionary<string, string>
+        {
+            ["Account"] = playerCode,
+            ["TransactionId"] = transactionId,
+            ["Amount"] = amount.ToString(),
+            ["TransferType"] = ((int)transferType).ToString("d"),
+            ["AgentId"] = agentId
+        };
 
+        var keyGen = GetKeyGen(agentId, agentKey);
+        var key = GetKey(keyGen, parameters);
+        parameters["Key"] = key;
+
+        var tryCount = 3;
+        var retryPolicy = Policy.HandleResult<JsonDocument?>(r =>
+        {
+            var errorCode = r?.RootElement.GetProperty("ErrorCode").ToString();
+            return errorCode == "106";
+        })
+         .WaitAndRetryAsync(tryCount,
+             retryAttempt => TimeSpan.FromSeconds(Random.Shared.Next(1, maxValue: 20)),
+             (result, retryTime, context) =>
+             {
+                 _logger.LogWarning("LogOn:{logOn}  Parameter:{parameters} Result:{result} Delay:{retryTime}",
+                     DateTime.Now.ToString("o"),
+                     parameters,
+                     result,
+                     retryTime);
+             });
+
+        var document = await retryPolicy.ExecuteAsync(async () => await PostAsync(apiUrl, "/api1/ExchangeTransferByAgentId", parameters, "ExchangeTransferByAgentId", cancellationToken));
+
+        if (document is null)
+        {
+            throw new Exception("Document is empty.");
+        }
+
+        if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
+        {
+            throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
+        }
+
+        var errorCode = jsonErrorCode.ToString();
+
+        if (errorCode is not "0")
+        {
             return new ExchangeTransferByAgentIdResult(
-                Success: success,
-                TransactionId: jsonGameProductTransactionId.ToString(),
-                CoinBefore: coinBefore,
-                CoinAfter: coinAfter,
-                CurrencyBefore: currencyBefore,
-                CurrencyAfter: CurrencyAfter);
+                Success: false,
+                Message: document.RootElement.GetProperty("Message").ToString());
         }
 
-        public async ValueTask<GetBetRecordByTimeResult> GetBetRecordByTimeAsync(Uri apiUrl, string agentId, string agentKey, DateTime startTime, DateTime endTime, int page = 1, int pageLimit = 100, CancellationToken cancellationToken = default)
+        var data = document.RootElement.GetProperty("Data");
+
+        if (!data.TryGetProperty("TransactionId", out var jsonGameProductTransactionId) ||
+            !data.TryGetProperty("CoinBefore", out var jsonCoinBefore) ||
+            !data.TryGetProperty("CoinAfter", out var jsonCoinAfter) ||
+            !data.TryGetProperty("CurrencyBefore", out var jsonCurrencyBefore) ||
+            !data.TryGetProperty("CurrencyAfter", out var jsonCurrencyAfter) ||
+            !data.TryGetProperty("Status", out var jsonStatus))
+
         {
-            var cuiabaTime = TimeZoneInfo.FindSystemTimeZoneById("Central Brazilian Standard Time");//(UTC-04:00) Cuiaba
+            throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
+        }
+        var success = jsonStatus.GetInt16() == 1;
 
-            startTime = TimeZoneInfo.ConvertTimeFromUtc(startTime, cuiabaTime);
-            endTime = TimeZoneInfo.ConvertTimeFromUtc(endTime, cuiabaTime);
-            var parameters = new Dictionary<string, string>
-            {
-                ["StartTime"] = startTime.ToString("yyyy-MM-ddTHH:mm:ss"),
-                ["EndTime"] = endTime.ToString("yyyy-MM-ddTHH:mm:ss"),
-                ["Page"] = page.ToString(),
-                ["PageLimit"] = pageLimit.ToString(),
-                ["AgentId"] = agentId
-            };
+        var coinBefore = default(decimal);
+        var coinAfter = default(decimal);
+        var currencyBefore = default(decimal);
+        var CurrencyAfter = default(decimal);
+        if (success)
+        {
+            _ = jsonCoinBefore.TryGetDecimal(out coinBefore);
+            _ = jsonCoinAfter.TryGetDecimal(out coinAfter);
+            _ = jsonCurrencyBefore.TryGetDecimal(out currencyBefore);
+            _ = jsonCurrencyAfter.TryGetDecimal(out CurrencyAfter);
+        }
 
-            var keyGen = GetKeyGen(agentId, agentKey);
-            var key = GetKey(keyGen, parameters);
-            parameters["Key"] = key;
-            parameters["FilterAgent"] = "1";
+        return new ExchangeTransferByAgentIdResult(
+            Success: success,
+            TransactionId: jsonGameProductTransactionId.ToString(),
+            CoinBefore: coinBefore,
+            CoinAfter: coinAfter,
+            CurrencyBefore: currencyBefore,
+            CurrencyAfter: CurrencyAfter);
+    }
 
-            var document = await GetAsync(
-                           apiUrl,
-                           "/api1/GetBetRecordByTime",
-                           parameters,
-                           "GetBetRecordByTime",
-                           cancellationToken).ConfigureAwait(false);
+    public async ValueTask<GetBetRecordByTimeResult> GetBetRecordByTimeAsync(Uri apiUrl, string agentId, string agentKey, DateTime startTime, DateTime endTime, int page = 1, int pageLimit = 100, CancellationToken cancellationToken = default)
+    {
+        var cuiabaTime = TimeZoneInfo.FindSystemTimeZoneById("Central Brazilian Standard Time");//(UTC-04:00) Cuiaba
 
-            if (document is null)
-            {
-                throw new Exception("Document is empty.");
-            }
+        startTime = TimeZoneInfo.ConvertTimeFromUtc(startTime, cuiabaTime);
+        endTime = TimeZoneInfo.ConvertTimeFromUtc(endTime, cuiabaTime);
+        var parameters = new Dictionary<string, string>
+        {
+            ["StartTime"] = startTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+            ["EndTime"] = endTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+            ["Page"] = page.ToString(),
+            ["PageLimit"] = pageLimit.ToString(),
+            ["AgentId"] = agentId
+        };
 
-            if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
-            {
-                throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
-            }
+        var keyGen = GetKeyGen(agentId, agentKey);
+        var key = GetKey(keyGen, parameters);
+        parameters["Key"] = key;
+        parameters["FilterAgent"] = "1";
 
-            var errorCode = jsonErrorCode.ToString();
+        var document = await GetAsync(
+                       apiUrl,
+                       "/api1/GetBetRecordByTime",
+                       parameters,
+                       "GetBetRecordByTime",
+                       cancellationToken).ConfigureAwait(false);
 
-            if (errorCode is not "0")
-            {
-                return new GetBetRecordByTimeResult(
-                     Success: false,
-                     Message: document.RootElement.GetProperty("Message").ToString());
-            }
+        if (document is null)
+        {
+            throw new Exception("Document is empty.");
+        }
 
-            if (!document.RootElement.TryGetProperty("Data", out var jsonData))
-            {
-                throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
-            }
+        if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
+        {
+            throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
+        }
 
-            if (!jsonData.TryGetProperty("Result", out var jsonResult))
-            {
-                throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
-            }
+        var errorCode = jsonErrorCode.ToString();
 
-            if (string.IsNullOrWhiteSpace(jsonResult.ToString()))
-            {
-                return new GetBetRecordByTimeResult(
-                    Success: true,
-                    Transactions: Enumerable.Empty<GetBetRecordTransaction>());
-            }
+        if (errorCode is not "0")
+        {
+            return new GetBetRecordByTimeResult(
+                 Success: false,
+                 Message: document.RootElement.GetProperty("Message").ToString());
+        }
 
-            var transactions = jsonResult.EnumerateArray().ToArray().Select(transaction => new GetBetRecordTransaction()
-            {
-                Account = transaction.GetProperty("Account").ToString(),
-                WagersId = transaction.GetProperty("WagersId").ToString(),
-                GameId = transaction.GetProperty("GameId").GetInt32(),
-                WagersTime = DateTimeOffset.Parse(transaction.GetProperty("WagersTime").ToString()),
-                BetAmount = -transaction.GetProperty("BetAmount").GetDecimal(),
-                PayoffTime = DateTimeOffset.Parse(transaction.GetProperty("PayoffTime").ToString()),
-                PayoffAmount = transaction.GetProperty("PayoffAmount").GetDecimal(),
-                Status = (JiLiStatus)transaction.GetProperty("Status").GetInt32(),
-                SettlementTime = DateTimeOffset.Parse(transaction.GetProperty("SettlementTime").ToString()),
-                GameCategoryId = transaction.GetProperty("GameCategoryId").GetInt32(),
-                VersionKey = transaction.GetProperty("VersionKey").GetInt32(),
-                Type = transaction.GetProperty("Type").GetInt32(),
-                AgentId = transaction.GetProperty("AgentId").ToString()
-            });
+        if (!document.RootElement.TryGetProperty("Data", out var jsonData))
+        {
+            throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
+        }
 
+        if (!jsonData.TryGetProperty("Result", out var jsonResult))
+        {
+            throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
+        }
+
+        if (string.IsNullOrWhiteSpace(jsonResult.ToString()))
+        {
             return new GetBetRecordByTimeResult(
                 Success: true,
-                Transactions: transactions);
+                Transactions: Enumerable.Empty<GetBetRecordTransaction>());
         }
 
-        public async ValueTask<GetMemberInfoResult> GetMemberInfoAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, CancellationToken cancellationToken = default)
+        var transactions = jsonResult.EnumerateArray().ToArray().Select(transaction => new GetBetRecordTransaction()
         {
-            var parameters = new Dictionary<string, string>
-            {
-                ["Accounts"] = playerCode,
-                ["AgentId"] = agentId
-            };
+            Account = transaction.GetProperty("Account").ToString(),
+            WagersId = transaction.GetProperty("WagersId").ToString(),
+            GameId = transaction.GetProperty("GameId").GetInt32(),
+            WagersTime = DateTimeOffset.Parse(transaction.GetProperty("WagersTime").ToString()),
+            BetAmount = -transaction.GetProperty("BetAmount").GetDecimal(),
+            PayoffTime = DateTimeOffset.Parse(transaction.GetProperty("PayoffTime").ToString()),
+            PayoffAmount = transaction.GetProperty("PayoffAmount").GetDecimal(),
+            Status = (JiLiStatus)transaction.GetProperty("Status").GetInt32(),
+            SettlementTime = DateTimeOffset.Parse(transaction.GetProperty("SettlementTime").ToString()),
+            GameCategoryId = transaction.GetProperty("GameCategoryId").GetInt32(),
+            VersionKey = transaction.GetProperty("VersionKey").GetInt32(),
+            Type = transaction.GetProperty("Type").GetInt32(),
+            AgentId = transaction.GetProperty("AgentId").ToString()
+        });
 
-            var keyGen = GetKeyGen(agentId, agentKey);
-            var key = GetKey(keyGen, parameters);
-            parameters["Key"] = key;
+        return new GetBetRecordByTimeResult(
+            Success: true,
+            Transactions: transactions);
+    }
 
-            var document = await PostAsync(
-                            apiUrl,
-                            "/api1/GetMemberInfo",
-                            parameters,
-                            "GetMemberInfo",
-                            cancellationToken).ConfigureAwait(false);
+    public async ValueTask<GetMemberInfoResult> GetMemberInfoAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, CancellationToken cancellationToken = default)
+    {
+        var parameters = new Dictionary<string, string>
+        {
+            ["Accounts"] = playerCode,
+            ["AgentId"] = agentId
+        };
 
-            if (document is null)
-            {
-                throw new Exception("Document is empty.");
-            }
+        var keyGen = GetKeyGen(agentId, agentKey);
+        var key = GetKey(keyGen, parameters);
+        parameters["Key"] = key;
 
-            if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
-            {
-                throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
-            }
+        var document = await PostAsync(
+                        apiUrl,
+                        "/api1/GetMemberInfo",
+                        parameters,
+                        "GetMemberInfo",
+                        cancellationToken).ConfigureAwait(false);
 
-            var errorCode = jsonErrorCode.ToString();
+        if (document is null)
+        {
+            throw new Exception("Document is empty.");
+        }
 
-            if (errorCode is not "0")
-            {
-                return new GetMemberInfoResult(
-                    Success: false,
-                    Message: document.RootElement.GetProperty("Message").ToString());
-            }
+        if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
+        {
+            throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
+        }
 
-            var datas = document.RootElement.GetProperty(propertyName: "Data");
+        var errorCode = jsonErrorCode.ToString();
 
-            var memberInfo = datas.EnumerateArray().FirstOrDefault();
-
-            var status = memberInfo.GetProperty("Status").GetInt32();
-
-            var balance = memberInfo.GetProperty("Balance").GetDecimal();
-
+        if (errorCode is not "0")
+        {
             return new GetMemberInfoResult(
-                Success: true,
-                IsPlayerExist: status is not 3,
-                Balance: balance);
+                Success: false,
+                Message: document.RootElement.GetProperty("Message").ToString());
         }
 
-        public async ValueTask KickMemberAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, CancellationToken cancellationToken = default)
+        var datas = document.RootElement.GetProperty(propertyName: "Data");
+
+        var memberInfo = datas.EnumerateArray().FirstOrDefault();
+
+        var status = memberInfo.GetProperty("Status").GetInt32();
+
+        var balance = memberInfo.GetProperty("Balance").GetDecimal();
+
+        return new GetMemberInfoResult(
+            Success: true,
+            IsPlayerExist: status is not 3,
+            Balance: balance);
+    }
+
+    public async ValueTask KickMemberAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, CancellationToken cancellationToken = default)
+    {
+        var parameters = new Dictionary<string, string>
         {
-            var parameters = new Dictionary<string, string>
-            {
-                ["Account"] = playerCode,
-                ["AgentId"] = agentId
-            };
+            ["Account"] = playerCode,
+            ["AgentId"] = agentId
+        };
 
-            var keyGen = GetKeyGen(agentId, agentKey);
-            var key = GetKey(keyGen, parameters);
-            parameters["Key"] = key;
-            _ = await PostAsync(
-                apiUrl,
-                "/api1/KickMember",
-                parameters,
-                "KickMember",
-                cancellationToken).ConfigureAwait(false);
-        }
+        var keyGen = GetKeyGen(agentId, agentKey);
+        var key = GetKey(keyGen, parameters);
+        parameters["Key"] = key;
+        _ = await PostAsync(
+            apiUrl,
+            "/api1/KickMember",
+            parameters,
+            "KickMember",
+            cancellationToken).ConfigureAwait(false);
+    }
 
-        public async ValueTask<LoginWithoutRedirectResult> LoginWithoutRedirectAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, string gameId, string lang, CancellationToken cancellationToken = default)
+    public async ValueTask<LoginWithoutRedirectResult> LoginWithoutRedirectAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, string gameId, string lang, CancellationToken cancellationToken = default)
+    {
+        var parameters = new Dictionary<string, string>
         {
-            var parameters = new Dictionary<string, string>
-            {
-                ["Account"] = playerCode,
-                ["GameId"] = gameId,
-                ["Lang"] = lang,
-                ["AgentId"] = agentId
-            };
+            ["Account"] = playerCode,
+            ["GameId"] = gameId,
+            ["Lang"] = lang,
+            ["AgentId"] = agentId
+        };
 
-            var keyGen = GetKeyGen(agentId, agentKey);
-            var key = GetKey(keyGen, parameters);
-            parameters["Key"] = key;
+        var keyGen = GetKeyGen(agentId, agentKey);
+        var key = GetKey(keyGen, parameters);
+        parameters["Key"] = key;
 
-            var document = await GetAsync(
-                           apiUrl,
-                           "/api1/LoginWithoutRedirect",
-                           parameters,
-                           "LoginWithoutRedirect",
-                           cancellationToken).ConfigureAwait(false);
+        var document = await GetAsync(
+                       apiUrl,
+                       "/api1/LoginWithoutRedirect",
+                       parameters,
+                       "LoginWithoutRedirect",
+                       cancellationToken).ConfigureAwait(false);
 
-            if (document is null)
-            {
-                throw new Exception("Document is empty.");
-            }
-
-            if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
-            {
-                throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
-            }
-
-            var errorCode = jsonErrorCode.ToString();
-
-            return errorCode is not "0" and not "14"
-                ? new LoginWithoutRedirectResult(
-                    Success: false,
-                    Message: document.RootElement.GetProperty("Message").ToString())
-                : new LoginWithoutRedirectResult(
-                Success: true,
-                IsPlayerExist: errorCode.ToString() is not "14",
-                GameUrl: document.RootElement.GetProperty("Data").ToString()
-                );
-        }
-
-        private static string GetKey(string keyGen, IEnumerable<KeyValuePair<string, string>> parameters)
+        if (document is null)
         {
-            var queryString = string.Join("&", parameters.Select(pair => $"{pair.Key}={pair.Value}"));
-            var value = $"{queryString}{keyGen}";
-
-            var hash = MD5Hash(value);
-
-            return $"{Guid.NewGuid().ToString("N")[..6]}{hash}{Guid.NewGuid().ToString("N")[..6]}";
+            throw new Exception("Document is empty.");
         }
 
-        private static string GetKeyGen(string agentId, string agentKey)
+        if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
         {
-            var cuiabaTime = TimeZoneInfo.FindSystemTimeZoneById("Central Brazilian Standard Time");//(UTC-04:00) Cuiaba
-
-            var date = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, cuiabaTime).ToString("yyMMd");
-            var value = $"{date}{agentId}{agentKey}";
-
-            return MD5Hash(value);
+            throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
         }
 
-        private static string MD5Hash(string original)
+        var errorCode = jsonErrorCode.ToString();
+
+        return errorCode is not "0" and not "14"
+            ? new LoginWithoutRedirectResult(
+                Success: false,
+                Message: document.RootElement.GetProperty("Message").ToString())
+            : new LoginWithoutRedirectResult(
+            Success: true,
+            IsPlayerExist: errorCode.ToString() is not "14",
+            GameUrl: document.RootElement.GetProperty("Data").ToString()
+            );
+    }
+
+    private static string GetKey(string keyGen, IEnumerable<KeyValuePair<string, string>> parameters)
+    {
+        var queryString = string.Join("&", parameters.Select(pair => $"{pair.Key}={pair.Value}"));
+        var value = $"{queryString}{keyGen}";
+
+        var hash = MD5Hash(value);
+
+        return $"{Guid.NewGuid().ToString("N")[..6]}{hash}{Guid.NewGuid().ToString("N")[..6]}";
+    }
+
+    private static string GetKeyGen(string agentId, string agentKey)
+    {
+        var cuiabaTime = TimeZoneInfo.FindSystemTimeZoneById("Central Brazilian Standard Time");//(UTC-04:00) Cuiaba
+
+        var date = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, cuiabaTime).ToString("yyMMd");
+        var value = $"{date}{agentId}{agentKey}";
+
+        return MD5Hash(value);
+    }
+
+    private static string MD5Hash(string original)
+    {
+        var data = Encoding.UTF8.GetBytes(original);
+        var hash = MD5.HashData(data);
+
+        var sb = new StringBuilder();
+
+        foreach (var t in hash)
         {
-            var data = Encoding.UTF8.GetBytes(original);
-            var hash = MD5.HashData(data);
-
-            var sb = new StringBuilder();
-
-            foreach (var t in hash)
-            {
-                _ = sb.Append(t.ToString("x2"));
-            }
-
-            return sb.ToString();
+            _ = sb.Append(t.ToString("x2"));
         }
 
-        private async ValueTask<JsonDocument?> GetAsync(Uri apiUrl, string path, IEnumerable<KeyValuePair<string, string>> parameters, string logPrefix, CancellationToken cancellationToken = default)
+        return sb.ToString();
+    }
+
+    private async ValueTask<JsonDocument?> GetAsync(Uri apiUrl, string path, IEnumerable<KeyValuePair<string, string>> parameters, string logPrefix, CancellationToken cancellationToken = default)
+    {
+        logPrefix = $"{nameof(GameApiClient)}.{logPrefix}".ToLower();
+
+        var url = new Uri(apiUrl, path);
+        var requestUri = QueryHelpers.AddQueryString(url.OriginalString, parameters.ToDictionary(x => x.Key, x => x.Value));
+
+        var sw = Stopwatch.StartNew();
+
+        var httpResponseMessage = await _client.GetAsync(requestUri, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        sw.Stop();
+
+        var responseMessage = default(string);
+
+        var stream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+        using (var sr = new StreamReader(stream))
         {
-            logPrefix = $"{nameof(GameApiClient)}.{logPrefix}".ToLower();
-
-            var url = new Uri(apiUrl, path);
-            var requestUri = QueryHelpers.AddQueryString(url.OriginalString, parameters.ToDictionary(x => x.Key, x => x.Value));
-
-            var sw = Stopwatch.StartNew();
-
-            var httpResponseMessage = await _client.GetAsync(requestUri, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            sw.Stop();
-
-            var responseMessage = default(string);
-
-            var stream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-            using (var sr = new StreamReader(stream))
-            {
-                responseMessage = await sr.ReadToEndAsync().ConfigureAwait(false);
-            }
-
-            var apiLogEvent = new ApiLogEvent
-            {
-                Path = httpResponseMessage.RequestMessage?.RequestUri?.AbsoluteUri.NoLongerThan(512) ?? string.Empty,
-                Method = httpResponseMessage.RequestMessage?.Method.ToString().NoLongerThan(8) ?? string.Empty,
-                Prefix = logPrefix,
-                ServerName = Environment.MachineName.NoLongerThan(128),
-                RequestHeaders = httpResponseMessage.RequestMessage?.Headers + httpResponseMessage.RequestMessage?.Content?.Headers?.ToString(),
-                RequestContent = string.Empty,
-                ResponseHeaders = httpResponseMessage.Headers.ToString(),
-                ResponseContent = responseMessage.NoLongerThan(4096),
-                ResponseCode = (short)httpResponseMessage.StatusCode,
-                ExecutionTimeMs = (int)sw.ElapsedMilliseconds,
-                RecordedOn = DateTimeOffset.UtcNow
-            };
-            _tgsLog.LogApi(apiLogEvent);
-            _logger.LogInformation("{apiLogEvent}", JsonSerializer.Serialize(apiLogEvent));
-
-            _ = httpResponseMessage.EnsureSuccessStatusCode();
-
-            return JsonDocument.Parse(responseMessage);
+            responseMessage = await sr.ReadToEndAsync().ConfigureAwait(false);
         }
 
-        private async ValueTask<JsonDocument?> PostAsync(Uri apiUrl, string path, IEnumerable<KeyValuePair<string, string>> parameters, string logPrefix, CancellationToken cancellationToken = default)
+        var apiLogEvent = new ApiLogEvent
         {
-            logPrefix = $"{nameof(GameApiClient)}.{logPrefix}".ToLower();
+            Path = httpResponseMessage.RequestMessage?.RequestUri?.AbsoluteUri.NoLongerThan(512) ?? string.Empty,
+            Method = httpResponseMessage.RequestMessage?.Method.ToString().NoLongerThan(8) ?? string.Empty,
+            Prefix = logPrefix,
+            ServerName = Environment.MachineName.NoLongerThan(128),
+            RequestHeaders = httpResponseMessage.RequestMessage?.Headers + httpResponseMessage.RequestMessage?.Content?.Headers?.ToString(),
+            RequestContent = string.Empty,
+            ResponseHeaders = httpResponseMessage.Headers.ToString(),
+            ResponseContent = responseMessage.NoLongerThan(4096),
+            ResponseCode = (short)httpResponseMessage.StatusCode,
+            ExecutionTimeMs = (int)sw.ElapsedMilliseconds,
+            RecordedOn = DateTimeOffset.UtcNow
+        };
+        _tgsLog.LogApi(apiLogEvent);
+        _logger.LogInformation("{apiLogEvent}", JsonSerializer.Serialize(apiLogEvent));
 
-            var sw = Stopwatch.StartNew();
-            var url = new Uri(apiUrl, path);
+        _ = httpResponseMessage.EnsureSuccessStatusCode();
 
-            HttpContent content = new FormUrlEncodedContent(parameters);
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded")
-            {
-                CharSet = "UTF-8"
-            };
+        return JsonDocument.Parse(responseMessage);
+    }
 
-            var httpResponseMessage = await _client.PostAsync(url, content, cancellationToken);
+    private async ValueTask<JsonDocument?> PostAsync(Uri apiUrl, string path, IEnumerable<KeyValuePair<string, string>> parameters, string logPrefix, CancellationToken cancellationToken = default)
+    {
+        logPrefix = $"{nameof(GameApiClient)}.{logPrefix}".ToLower();
 
-            sw.Stop();
+        var sw = Stopwatch.StartNew();
+        var url = new Uri(apiUrl, path);
 
-            var responseMessage = default(string);
+        HttpContent content = new FormUrlEncodedContent(parameters);
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded")
+        {
+            CharSet = "UTF-8"
+        };
 
-            using (var sr = new StreamReader(httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken).Result))
-            {
-                responseMessage = await sr.ReadToEndAsync().ConfigureAwait(false) ?? string.Empty;
-            }
+        var httpResponseMessage = await _client.PostAsync(url, content, cancellationToken);
 
-            var apiLogEvent = new ApiLogEvent
-            {
-                Path = httpResponseMessage.RequestMessage?.RequestUri?.AbsoluteUri.NoLongerThan(512) ?? string.Empty,
-                Method = httpResponseMessage.RequestMessage?.Method.ToString().NoLongerThan(8) ?? string.Empty,
-                Prefix = logPrefix,
-                ServerName = Environment.MachineName.NoLongerThan(128),
-                RequestHeaders = httpResponseMessage.RequestMessage?.Headers + httpResponseMessage.RequestMessage?.Content?.Headers?.ToString(),
-                RequestContent = (await content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)).NoLongerThan(4096),
-                ResponseHeaders = httpResponseMessage.Headers.ToString(),
-                ResponseContent = responseMessage.NoLongerThan(4096),
-                ResponseCode = (short)httpResponseMessage.StatusCode,
-                ExecutionTimeMs = (int)sw.ElapsedMilliseconds,
-                RecordedOn = DateTimeOffset.UtcNow
-            };
-            _tgsLog.LogApi(apiLogEvent);
-            _logger.LogInformation("{apiLogEvent}", JsonSerializer.Serialize(apiLogEvent));
+        sw.Stop();
 
-            _ = httpResponseMessage.EnsureSuccessStatusCode();
+        var responseMessage = default(string);
 
-            return JsonDocument.Parse(responseMessage);
+        using (var sr = new StreamReader(httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken).Result))
+        {
+            responseMessage = await sr.ReadToEndAsync().ConfigureAwait(false) ?? string.Empty;
         }
+
+        var apiLogEvent = new ApiLogEvent
+        {
+            Path = httpResponseMessage.RequestMessage?.RequestUri?.AbsoluteUri.NoLongerThan(512) ?? string.Empty,
+            Method = httpResponseMessage.RequestMessage?.Method.ToString().NoLongerThan(8) ?? string.Empty,
+            Prefix = logPrefix,
+            ServerName = Environment.MachineName.NoLongerThan(128),
+            RequestHeaders = httpResponseMessage.RequestMessage?.Headers + httpResponseMessage.RequestMessage?.Content?.Headers?.ToString(),
+            RequestContent = (await content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)).NoLongerThan(4096),
+            ResponseHeaders = httpResponseMessage.Headers.ToString(),
+            ResponseContent = responseMessage.NoLongerThan(4096),
+            ResponseCode = (short)httpResponseMessage.StatusCode,
+            ExecutionTimeMs = (int)sw.ElapsedMilliseconds,
+            RecordedOn = DateTimeOffset.UtcNow
+        };
+        _tgsLog.LogApi(apiLogEvent);
+        _logger.LogInformation("{apiLogEvent}", JsonSerializer.Serialize(apiLogEvent));
+
+        _ = httpResponseMessage.EnsureSuccessStatusCode();
+
+        return JsonDocument.Parse(responseMessage);
     }
 }

@@ -2,60 +2,59 @@
 using Microsoft.Extensions.Logging;
 using Tgs.ServiceUtility;
 
-namespace Tgs.GameInterface.JiliService.Core.ApplicationServices
-{
-    internal class GameRecordGetService : IQueryService<GameRecordQuery, GameRecordResult>
-    {
-        private readonly IGameApiClient _client;
-        private readonly ILogger<GameRecordGetService> _logger;
+namespace Tgs.GameInterface.JiliService.Core.ApplicationServices;
 
-        public GameRecordGetService(
-            ILogger<GameRecordGetService> logger,
-            IGameApiClient client)
+internal class GameRecordGetService : IQueryService<GameRecordQuery, GameRecordResult>
+{
+    private readonly IGameApiClient _client;
+    private readonly ILogger<GameRecordGetService> _logger;
+
+    public GameRecordGetService(
+        ILogger<GameRecordGetService> logger,
+        IGameApiClient client)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _client = client ?? throw new ArgumentNullException(nameof(client));
+    }
+
+    public async IAsyncEnumerable<GameRecordResult> QueryAsync(GameRecordQuery query, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var result = await _client.GetBetRecordByTimeAsync(
+            apiUrl: query.ApiUrl,
+            agentId: query.AgentId,
+            agentKey: query.AgentKey,
+            startTime: query.StartTime.UtcDateTime,
+            endTime: query.EndTime.UtcDateTime,
+            page: query.Page,
+            pageLimit: query.PageLimit,
+            cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        if (!result.Success)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _logger.LogError("Logon:{logon} | Message:{message}", DateTime.UtcNow.ToString("O"), result.Message ?? string.Empty);
+            yield break;
         }
 
-        public async IAsyncEnumerable<GameRecordResult> QueryAsync(GameRecordQuery query, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        if (result.Transactions is null || !result.Transactions.Any())
         {
-            var result = await _client.GetBetRecordByTimeAsync(
-                apiUrl: query.ApiUrl,
-                agentId: query.AgentId,
-                agentKey: query.AgentKey,
-                startTime: query.StartTime.UtcDateTime,
-                endTime: query.EndTime.UtcDateTime,
-                page: query.Page,
-                pageLimit: query.PageLimit,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+            yield break;
+        }
 
-            if (!result.Success)
-            {
-                _logger.LogError("Logon:{logon} | Message:{message}", DateTime.UtcNow.ToString("O"), result.Message ?? string.Empty);
-                yield break;
-            }
-
-            if (result.Transactions is null || !result.Transactions.Any())
-            {
-                yield break;
-            }
-
-            foreach (var transaction in result.Transactions)
-            {
-                yield return new GameRecordResult(
-                             Account: transaction.Account,
-                             WagersId: transaction.WagersId,
-                             GameId: transaction.GameId,
-                             WagersTime: transaction.WagersTime,
-                             BetAmount: transaction.BetAmount,
-                             PayoffTime: transaction.PayoffTime,
-                             PayoffAmount: transaction.PayoffAmount,
-                             Status: transaction.Status,
-                             SettlementTime: transaction.SettlementTime,
-                             GameCategoryId: transaction.GameCategoryId,
-                             Type: transaction.Type,
-                             AgentId: transaction.AgentId);
-            }
+        foreach (var transaction in result.Transactions)
+        {
+            yield return new GameRecordResult(
+                         Account: transaction.Account,
+                         WagersId: transaction.WagersId,
+                         GameId: transaction.GameId,
+                         WagersTime: transaction.WagersTime,
+                         BetAmount: transaction.BetAmount,
+                         PayoffTime: transaction.PayoffTime,
+                         PayoffAmount: transaction.PayoffAmount,
+                         Status: transaction.Status,
+                         SettlementTime: transaction.SettlementTime,
+                         GameCategoryId: transaction.GameCategoryId,
+                         Type: transaction.Type,
+                         AgentId: transaction.AgentId);
         }
     }
 }

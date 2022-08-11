@@ -1,7 +1,6 @@
-﻿namespace Tgs.GameInterface.JiliService.Client
+﻿namespace Tgs.GameInterface.JiliService.Client;
+
+public class GameInterfaceJiliServiceClientOptions
 {
-    public class GameInterfaceJiliServiceClientOptions
-    {
-        public Uri BaseUrl { get; set; } = default!;
-    }
+    public Uri BaseUrl { get; set; } = default!;
 }
