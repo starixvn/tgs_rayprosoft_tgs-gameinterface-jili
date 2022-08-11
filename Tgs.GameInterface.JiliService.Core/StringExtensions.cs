@@ -1,8 +1,7 @@
-﻿namespace Tgs.GameInterface.JiliService.Core
+﻿namespace Tgs.GameInterface.JiliService.Core;
+
+public static class StringExtensions
 {
-    public static class StringExtensions
-    {
-        public static string NoLongerThan(this string str, int chars)
-            => string.IsNullOrEmpty(str) || str.Length <= chars ? str : str[..chars];
-    }
+    public static string NoLongerThan(this string str, int chars)
+        => string.IsNullOrEmpty(str) || str.Length <= chars ? str : str[..chars];
 }

@@ -1,10 +1,9 @@
 ﻿using System.Diagnostics;
 
-namespace Tgs.GameInterface.JiliService.Client
+namespace Tgs.GameInterface.JiliService.Client;
+
+public class DiagnosticsInterceptorOptions
 {
-    public class DiagnosticsInterceptorOptions
-    {
-        public ActivitySource InterceptorActivitySource { get; set; } =
-            new ActivitySource($"Tgs.GameInterface.JiliService.Client.DiagnosticsInterceptor");
-    }
+    public ActivitySource InterceptorActivitySource { get; set; } =
+        new ActivitySource($"Tgs.GameInterface.JiliService.Client.DiagnosticsInterceptor");
 }

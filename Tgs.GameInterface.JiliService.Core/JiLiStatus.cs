@@ -1,8 +1,7 @@
-﻿namespace Tgs.GameInterface.JiliService.Core
+﻿namespace Tgs.GameInterface.JiliService.Core;
+
+public enum JiLiStatus
 {
-    public enum JiLiStatus
-    {
-        Win = 1,
-        Lose = 2
-    }
+    Win = 1,
+    Lose = 2
 }
