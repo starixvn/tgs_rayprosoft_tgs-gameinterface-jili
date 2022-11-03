@@ -69,11 +69,11 @@ public class GetBetRecordByTimeUnitTest
               agentId: agentId,
               agentKey: agentKey,
               startTime: startTime,
-              endTime: endTime).ConfigureAwait(false);
+              endTime: endTime)
+            .ToArrayAsync()
+            .ConfigureAwait(false);
 
         Assert.IsNotNull(atual);
-        Assert.AreEqual(true, atual.Success);
-        Assert.IsNotNull(atual.Transactions);
-        Assert.IsTrue(atual.Transactions.Single().BetAmount > 0);
+        Assert.IsTrue(atual.Single().BetAmount > 0);
     }
 }

@@ -19,7 +19,7 @@ internal class GameRecordGetService : IQueryService<GameRecordQuery, GameRecordR
 
     public async IAsyncEnumerable<GameRecordResult> QueryAsync(GameRecordQuery query, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var result = await _client.GetBetRecordByTimeAsync(
+        var transactions = await _client.GetBetRecordByTimeAsync(
             apiUrl: query.ApiUrl,
             agentId: query.AgentId,
             agentKey: query.AgentKey,
@@ -27,20 +27,25 @@ internal class GameRecordGetService : IQueryService<GameRecordQuery, GameRecordR
             endTime: query.EndTime.UtcDateTime,
             page: query.Page,
             pageLimit: query.PageLimit,
-            cancellationToken: cancellationToken).ConfigureAwait(false);
+            cancellationToken: cancellationToken)
+            .ToArrayAsync(cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
-        if (!result.Success)
+        _logger.LogInformation("Time:{startTime}~{endTime} Page:{page} PageLimit:{pageLimit} 總筆數:{count}",
+            query.StartTime.UtcDateTime,
+             query.EndTime.UtcDateTime,
+             query.Page,
+             query.PageLimit,
+             transactions.Count());
+
+
+
+        if (transactions is null || !transactions.Any())
         {
-            _logger.LogError("Logon:{logon} | Message:{message}", DateTime.UtcNow.ToString("O"), result.Message ?? string.Empty);
             yield break;
         }
 
-        if (result.Transactions is null || !result.Transactions.Any())
-        {
-            yield break;
-        }
-
-        foreach (var transaction in result.Transactions)
+        foreach (var transaction in transactions)
         {
             yield return new GameRecordResult(
                          Account: transaction.Account,
