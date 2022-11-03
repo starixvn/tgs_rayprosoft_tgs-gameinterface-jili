@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -215,12 +216,20 @@ internal class GameApiClient : IGameApiClient
             CurrencyAfter: CurrencyAfter);
     }
 
-    public async ValueTask<GetBetRecordByTimeResult> GetBetRecordByTimeAsync(Uri apiUrl, string agentId, string agentKey, DateTime startTime, DateTime endTime, int page = 1, int pageLimit = 100, CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<GetBetRecordTransaction> GetBetRecordByTimeAsync(
+        Uri apiUrl,
+        string agentId,
+        string agentKey,
+        DateTime startTime,
+        DateTime endTime,
+        int page = 1,
+        int pageLimit = 100,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var cuiabaTime = TimeZoneInfo.FindSystemTimeZoneById("Central Brazilian Standard Time");//(UTC-04:00) Cuiaba
+        var _timeZone = TimeZoneInfo.CreateCustomTimeZone(id: "eastern time", baseUtcOffset: TimeSpan.FromHours(-4), "eastern time", "eastern time");
 
-        startTime = TimeZoneInfo.ConvertTimeFromUtc(startTime, cuiabaTime);
-        endTime = TimeZoneInfo.ConvertTimeFromUtc(endTime, cuiabaTime);
+        startTime = TimeZoneInfo.ConvertTimeFromUtc(startTime, _timeZone);
+        endTime = TimeZoneInfo.ConvertTimeFromUtc(endTime, _timeZone);
         var parameters = new Dictionary<string, string>
         {
             ["StartTime"] = startTime.ToString("yyyy-MM-ddTHH:mm:ss"),
@@ -256,9 +265,7 @@ internal class GameApiClient : IGameApiClient
 
         if (errorCode is not "0")
         {
-            return new GetBetRecordByTimeResult(
-                 Success: false,
-                 Message: document.RootElement.GetProperty("Message").ToString());
+            throw new Exception($"Game provider error.({JsonSerializer.Serialize(document.RootElement.GetProperty("Message").ToString())})");
         }
 
         if (!document.RootElement.TryGetProperty("Data", out var jsonData))
@@ -273,31 +280,28 @@ internal class GameApiClient : IGameApiClient
 
         if (string.IsNullOrWhiteSpace(jsonResult.ToString()))
         {
-            return new GetBetRecordByTimeResult(
-                Success: true,
-                Transactions: Enumerable.Empty<GetBetRecordTransaction>());
+            yield break;
         }
 
-        var transactions = jsonResult.EnumerateArray().ToArray().Select(transaction => new GetBetRecordTransaction()
+        foreach (var transaction in jsonResult.EnumerateArray())
         {
-            Account = transaction.GetProperty("Account").ToString(),
-            WagersId = transaction.GetProperty("WagersId").ToString(),
-            GameId = transaction.GetProperty("GameId").GetInt32(),
-            WagersTime = DateTimeOffset.Parse(transaction.GetProperty("WagersTime").ToString()),
-            BetAmount = -transaction.GetProperty("BetAmount").GetDecimal(),
-            PayoffTime = DateTimeOffset.Parse(transaction.GetProperty("PayoffTime").ToString()),
-            PayoffAmount = transaction.GetProperty("PayoffAmount").GetDecimal(),
-            Status = (JiLiStatus)transaction.GetProperty("Status").GetInt32(),
-            SettlementTime = DateTimeOffset.Parse(transaction.GetProperty("SettlementTime").ToString()),
-            GameCategoryId = transaction.GetProperty("GameCategoryId").GetInt32(),
-            VersionKey = transaction.GetProperty("VersionKey").GetInt32(),
-            Type = transaction.GetProperty("Type").GetInt32(),
-            AgentId = transaction.GetProperty("AgentId").ToString()
-        });
-
-        return new GetBetRecordByTimeResult(
-            Success: true,
-            Transactions: transactions);
+            yield return new GetBetRecordTransaction()
+            {
+                Account = transaction.GetProperty("Account").ToString(),
+                WagersId = transaction.GetProperty("WagersId").ToString(),
+                GameId = transaction.GetProperty("GameId").GetInt32(),
+                WagersTime = DateTimeOffset.Parse(transaction.GetProperty("WagersTime").ToString()),
+                BetAmount = -transaction.GetProperty("BetAmount").GetDecimal(),
+                PayoffTime = DateTimeOffset.Parse(transaction.GetProperty("PayoffTime").ToString()),
+                PayoffAmount = transaction.GetProperty("PayoffAmount").GetDecimal(),
+                Status = (JiLiStatus)transaction.GetProperty("Status").GetInt32(),
+                SettlementTime = DateTimeOffset.Parse(transaction.GetProperty("SettlementTime").ToString()),
+                GameCategoryId = transaction.GetProperty("GameCategoryId").GetInt32(),
+                VersionKey = transaction.GetProperty("VersionKey").GetInt32(),
+                Type = transaction.GetProperty("Type").GetInt32(),
+                AgentId = transaction.GetProperty("AgentId").ToString()
+            };
+        }
     }
 
     public async ValueTask<GetMemberInfoResult> GetMemberInfoAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, CancellationToken cancellationToken = default)

@@ -10,7 +10,7 @@ public interface IGameApiClient
 
     ValueTask<ExchangeTransferByAgentIdResult> ExchangeTransferByAgentIdAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, string transactionId, TransferType transferType, decimal amount, CancellationToken cancellationToken = default);
 
-    ValueTask<GetBetRecordByTimeResult> GetBetRecordByTimeAsync(Uri apiUrl, string agentId, string agentKey, DateTime startTime, DateTime endTime, int page = 1, int pageLimit = 100, CancellationToken cancellationToken = default);
+    IAsyncEnumerable<GetBetRecordTransaction> GetBetRecordByTimeAsync(Uri apiUrl, string agentId, string agentKey, DateTime startTime, DateTime endTime, int page = 1, int pageLimit = 100, CancellationToken cancellationToken = default);
 
     ValueTask<GetMemberInfoResult> GetMemberInfoAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, CancellationToken cancellationToken = default);
 
