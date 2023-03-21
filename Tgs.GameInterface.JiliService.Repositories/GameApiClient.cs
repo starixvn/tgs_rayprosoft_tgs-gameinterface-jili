@@ -419,6 +419,105 @@ internal class GameApiClient : IGameApiClient
             );
     }
 
+    public async IAsyncEnumerable<GetBetRecordTransaction> GetBetRecordByTimeAsync(
+        Uri apiUrl,
+        string agentId,
+        string agentKey,
+        int gameId,
+        DateTime startTime,
+        DateTime endTime,
+        int page = 1,
+        int pageLimit = 100,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var _timeZone = TimeZoneInfo.CreateCustomTimeZone(id: "eastern time", baseUtcOffset: TimeSpan.FromHours(-4), "eastern time", "eastern time");
+
+        startTime = TimeZoneInfo.ConvertTimeFromUtc(startTime, _timeZone);
+        endTime = TimeZoneInfo.ConvertTimeFromUtc(endTime, _timeZone);
+        var parameters = new Dictionary<string, string>
+        {
+            ["StartTime"] = startTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+            ["EndTime"] = endTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+            ["Page"] = page.ToString(),
+            ["PageLimit"] = pageLimit.ToString(),
+            ["GameId"] = gameId.ToString(),
+            ["AgentId"] = agentId
+        };
+
+        var keyParameters = new Dictionary<string, string>
+        {
+            ["StartTime"] = startTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+            ["EndTime"] = endTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+            ["Page"] = page.ToString(),
+            ["PageLimit"] = pageLimit.ToString(),
+            ["AgentId"] = agentId
+        };
+
+        var keyGen = GetKeyGen(agentId, agentKey);
+        var key = GetKey(keyGen, keyParameters);
+        parameters["Key"] = key;
+        parameters["FilterAgent"] = "1";
+
+        var document = await GetAsync(
+                       apiUrl,
+                       "/api1/GetBetRecordByTime",
+                       parameters,
+                       "GetBetRecordByTime",
+                       cancellationToken).ConfigureAwait(false);
+
+        if (document is null)
+        {
+            throw new Exception("Document is empty.");
+        }
+
+        if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
+        {
+            throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
+        }
+
+        var errorCode = jsonErrorCode.ToString();
+
+        if (errorCode is not "0")
+        {
+            throw new Exception($"Game provider error.({JsonSerializer.Serialize(document.RootElement.GetProperty("Message").ToString())})");
+        }
+
+        if (!document.RootElement.TryGetProperty("Data", out var jsonData))
+        {
+            throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
+        }
+
+        if (!jsonData.TryGetProperty("Result", out var jsonResult))
+        {
+            throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
+        }
+
+        if (string.IsNullOrWhiteSpace(jsonResult.ToString()))
+        {
+            yield break;
+        }
+
+        foreach (var transaction in jsonResult.EnumerateArray())
+        {
+            yield return new GetBetRecordTransaction()
+            {
+                Account = transaction.GetProperty("Account").ToString(),
+                WagersId = transaction.GetProperty("WagersId").ToString(),
+                GameId = transaction.GetProperty("GameId").GetInt32(),
+                WagersTime = DateTimeOffset.Parse(transaction.GetProperty("WagersTime").ToString()),
+                BetAmount = -transaction.GetProperty("BetAmount").GetDecimal(),
+                PayoffTime = DateTimeOffset.Parse(transaction.GetProperty("PayoffTime").ToString()),
+                PayoffAmount = transaction.GetProperty("PayoffAmount").GetDecimal(),
+                Status = (JiLiStatus)transaction.GetProperty("Status").GetInt32(),
+                SettlementTime = DateTimeOffset.Parse(transaction.GetProperty("SettlementTime").ToString()),
+                GameCategoryId = transaction.GetProperty("GameCategoryId").GetInt32(),
+                VersionKey = transaction.GetProperty("VersionKey").GetInt32(),
+                Type = transaction.GetProperty("Type").GetInt32(),
+                AgentId = transaction.GetProperty("AgentId").ToString()
+            };
+        }
+    }
+
     private static string GetKey(string keyGen, IEnumerable<KeyValuePair<string, string>> parameters)
     {
         var queryString = string.Join("&", parameters.Select(pair => $"{pair.Key}={pair.Value}"));
