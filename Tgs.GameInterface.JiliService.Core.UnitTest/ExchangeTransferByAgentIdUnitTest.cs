@@ -1,12 +1,9 @@
 ﻿using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
-using NSubstitute;
 using RichardSzalay.MockHttp;
-using Tgs.GameInterface.JiliService.Core;
-using Tgs.Logging;
 
-namespace Tgs.GameInterface.JiliService.Repositories.UnitTest;
+namespace Tgs.GameInterface.JiliService.Core.UnitTest;
 
 [TestClass]
 public class ExchangeTransferByAgentIdUnitTest
@@ -43,9 +40,10 @@ public class ExchangeTransferByAgentIdUnitTest
 
         var fakeHttpClient = handler.ToHttpClient();
         var fakeLog = NullLogger<GameApiClient>.Instance;
-        var fakeTgsLog = Substitute.For<ITgsLog>();
 
-        var client = new GameApiClient(fakeHttpClient, fakeLog, fakeTgsLog);
+        var client = new GameApiClient(
+            fakeLog,
+            fakeHttpClient);
 
         var atual = await client.ExchangeTransferByAgentIdAsync(
               apiUrl: apiUrl,
@@ -91,11 +89,12 @@ public class ExchangeTransferByAgentIdUnitTest
         _ = handler.Expect(HttpMethod.Post, "/api1/ExchangeTransferByAgentId")
                 .Respond(HttpStatusCode.OK, new StringContent(content));
 
-        var fakeHttpClient = handler.ToHttpClient();
         var fakeLog = NullLogger<GameApiClient>.Instance;
-        var fakeTgsLog = Substitute.For<ITgsLog>();
+        var fakeHttpClient = handler.ToHttpClient();
 
-        var client = new GameApiClient(fakeHttpClient, fakeLog, fakeTgsLog);
+        var client = new GameApiClient(
+            fakeLog,
+            fakeHttpClient);
 
         var atual = await client.ExchangeTransferByAgentIdAsync(
               apiUrl: apiUrl,

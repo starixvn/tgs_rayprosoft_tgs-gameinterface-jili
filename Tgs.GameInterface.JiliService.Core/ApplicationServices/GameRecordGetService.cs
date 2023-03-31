@@ -38,8 +38,6 @@ internal class GameRecordGetService : IQueryService<GameRecordQuery, GameRecordR
              query.PageLimit,
              transactions.Count());
 
-
-
         if (transactions is null || !transactions.Any())
         {
             yield break;
