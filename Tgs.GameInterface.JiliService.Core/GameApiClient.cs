@@ -550,7 +550,10 @@ internal class GameApiClient : IGameApiClient
         var stream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
         using (var sr = new StreamReader(stream))
         {
-            responseMessage = await sr.ReadToEndAsync().ConfigureAwait(false);
+            responseMessage = await sr
+                .ReadToEndAsync(
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
         }
 
         var apiLogEvent = new GameApiLogEvent
@@ -595,7 +598,10 @@ internal class GameApiClient : IGameApiClient
 
         using (var sr = new StreamReader(httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken).Result))
         {
-            responseMessage = await sr.ReadToEndAsync().ConfigureAwait(false) ?? string.Empty;
+            responseMessage = await sr
+                .ReadToEndAsync(
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false) ?? string.Empty;
         }
 
         var apiLogEvent = new GameApiLogEvent
