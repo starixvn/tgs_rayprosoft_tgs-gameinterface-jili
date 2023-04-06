@@ -1,5 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
-using Microsoft.Extensions.Logging;
+using Tgs.GameInterface.JiliService.Core.Models;
 using Tgs.ServiceUtility;
 
 namespace Tgs.GameInterface.JiliService.Core.ApplicationServices;
@@ -7,38 +7,30 @@ namespace Tgs.GameInterface.JiliService.Core.ApplicationServices;
 internal class GameRecordGetService : IQueryService<GameRecordQuery, GameRecordResult>
 {
     private readonly IGameApiClient _client;
-    private readonly ILogger<GameRecordGetService> _logger;
 
     public GameRecordGetService(
-        ILogger<GameRecordGetService> logger,
         IGameApiClient client)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _client = client ?? throw new ArgumentNullException(nameof(client));
     }
 
     public async IAsyncEnumerable<GameRecordResult> QueryAsync(GameRecordQuery query, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var transactions = await _client.GetBetRecordByTimeAsync(
-            apiUrl: query.ApiUrl,
-            agentId: query.AgentId,
-            agentKey: query.AgentKey,
-            startTime: query.StartTime.UtcDateTime,
-            endTime: query.EndTime.UtcDateTime,
-            page: query.Page,
-            pageLimit: query.PageLimit,
-            cancellationToken: cancellationToken)
+        var transactions = await _client
+            .GetBetRecordByTimeAsync(
+                apiUrl: query.ApiUrl,
+                agentId: query.AgentId,
+                agentKey: query.AgentKey,
+                startTime: query.StartTime.UtcDateTime,
+                endTime: query.EndTime.UtcDateTime,
+                page: query.Page,
+                pageLimit: query.PageLimit,
+                cancellationToken: cancellationToken)
             .ToArrayAsync(cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
+            .ConfigureAwait(false)
+            ?? Enumerable.Empty<GetBetRecordTransaction>();
 
-        _logger.LogInformation("Time:{startTime}~{endTime} Page:{page} PageLimit:{pageLimit} 總筆數:{count}",
-            query.StartTime.UtcDateTime,
-             query.EndTime.UtcDateTime,
-             query.Page,
-             query.PageLimit,
-             transactions.Count());
-
-        if (transactions is null || !transactions.Any())
+        if (!transactions.Any())
         {
             yield break;
         }
