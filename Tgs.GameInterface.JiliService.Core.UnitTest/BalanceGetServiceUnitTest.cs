@@ -1,4 +1,4 @@
-using NSubstitute;
+﻿using NSubstitute;
 using Tgs.GameInterface.JiliService.Core.ApplicationServices;
 using Tgs.GameInterface.JiliService.Core.Models;
 

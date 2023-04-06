@@ -1,11 +1,9 @@
 ﻿using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
-using NSubstitute;
 using RichardSzalay.MockHttp;
-using Tgs.Logging;
 
-namespace Tgs.GameInterface.JiliService.Repositories.UnitTest;
+namespace Tgs.GameInterface.JiliService.Core.UnitTest;
 
 [TestClass]
 public class KickMemberUnitTest
@@ -29,11 +27,12 @@ public class KickMemberUnitTest
         _ = handler.Expect(HttpMethod.Post, "/api1/KickMember")
             .Respond(HttpStatusCode.OK, new StringContent(content));
 
-        var fakeHttpClient = handler.ToHttpClient();
         var fakeLog = NullLogger<GameApiClient>.Instance;
-        var fakeTgsLog = Substitute.For<ITgsLog>();
+        var fakeHttpClient = handler.ToHttpClient();
 
-        var client = new GameApiClient(fakeHttpClient, fakeLog, fakeTgsLog);
+        var client = new GameApiClient(
+            fakeLog,
+            fakeHttpClient);
 
         await client.KickMemberAsync(
               apiUrl: apiUrl,

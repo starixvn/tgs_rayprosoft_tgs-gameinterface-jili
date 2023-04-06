@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Tgs.GameInterface.JiLiService;
+namespace Tgs.GameInterface.JiliService;
 
 public class DiagnosticsInterceptorOptions
 {

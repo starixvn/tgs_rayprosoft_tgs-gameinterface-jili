@@ -8,11 +8,9 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Polly;
-using Tgs.GameInterface.JiliService.Core;
 using Tgs.GameInterface.JiliService.Core.Models;
-using Tgs.Logging;
 
-namespace Tgs.GameInterface.JiliService.Repositories;
+namespace Tgs.GameInterface.JiliService.Core;
 
 internal class GameApiClient : IGameApiClient
 {
@@ -27,16 +25,13 @@ internal class GameApiClient : IGameApiClient
 
     private readonly HttpClient _client;
     private readonly ILogger<GameApiClient> _logger;
-    private readonly ITgsLog _tgsLog;
 
     public GameApiClient(
-        HttpClient client,
         ILogger<GameApiClient> logger,
-        ITgsLog tgsLog)
+        HttpClient client)
     {
         _client = client ?? throw new ArgumentNullException(nameof(client));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _tgsLog = tgsLog ?? throw new ArgumentNullException(nameof(tgsLog));
     }
 
     public async ValueTask<bool> CheckTransferByTransactionIdAsync(Uri apiUrl, string agentId, string agentKey, string transactionId, CancellationToken cancellationToken = default)
@@ -56,12 +51,8 @@ internal class GameApiClient : IGameApiClient
             "/api1/CheckTransferByTransactionId",
             parameters,
             "CheckTransferByTransactionId",
-            cancellationToken).ConfigureAwait(false);
-
-        if (document is null)
-        {
-            throw new Exception("Document is empty.");
-        }
+            cancellationToken).ConfigureAwait(false)
+            ?? throw new Exception("Document is empty.");
 
         if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
         {
@@ -100,16 +91,12 @@ internal class GameApiClient : IGameApiClient
         parameters["Key"] = key;
 
         var document = await PostAsync(
-                        apiUrl,
-                        "/api1/CreateMember",
-                        parameters,
-                        "CreateMember",
-                        cancellationToken).ConfigureAwait(false);
-
-        if (document is null)
-        {
-            throw new Exception("Document is empty.");
-        }
+                apiUrl: apiUrl,
+                path: "/api1/CreateMember",
+                parameters: parameters,
+                logPrefix: "CreateMember",
+                cancellationToken: cancellationToken).ConfigureAwait(false)
+                ?? throw new Exception("Document is empty.");
 
         if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
         {
@@ -160,12 +147,16 @@ internal class GameApiClient : IGameApiClient
                      retryTime);
              });
 
-        var document = await retryPolicy.ExecuteAsync(async () => await PostAsync(apiUrl, "/api1/ExchangeTransferByAgentId", parameters, "ExchangeTransferByAgentId", cancellationToken));
-
-        if (document is null)
-        {
-            throw new Exception("Document is empty.");
-        }
+        var document = await retryPolicy
+            .ExecuteAsync(
+                async () => await PostAsync(
+                    apiUrl: apiUrl,
+                    path: "/api1/ExchangeTransferByAgentId",
+                    parameters: parameters,
+                    logPrefix: "ExchangeTransferByAgentId",
+                    cancellationToken: cancellationToken))
+            .ConfigureAwait(false)
+            ?? throw new Exception("Document is empty.");
 
         if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
         {
@@ -245,16 +236,13 @@ internal class GameApiClient : IGameApiClient
         parameters["FilterAgent"] = "1";
 
         var document = await GetAsync(
-                       apiUrl,
-                       "/api1/GetBetRecordByTime",
-                       parameters,
-                       "GetBetRecordByTime",
-                       cancellationToken).ConfigureAwait(false);
-
-        if (document is null)
-        {
-            throw new Exception("Document is empty.");
-        }
+                apiUrl: apiUrl,
+                path: "/api1/GetBetRecordByTime",
+                parameters: parameters,
+                logPrefix: "GetBetRecordByTime",
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false)
+            ?? throw new Exception("Document is empty.");
 
         if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
         {
@@ -317,16 +305,13 @@ internal class GameApiClient : IGameApiClient
         parameters["Key"] = key;
 
         var document = await PostAsync(
-                        apiUrl,
-                        "/api1/GetMemberInfo",
-                        parameters,
-                        "GetMemberInfo",
-                        cancellationToken).ConfigureAwait(false);
-
-        if (document is null)
-        {
-            throw new Exception("Document is empty.");
-        }
+                apiUrl: apiUrl,
+                path: "/api1/GetMemberInfo",
+                parameters: parameters,
+                logPrefix: "GetMemberInfo",
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false)
+            ?? throw new Exception("Document is empty.");
 
         if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
         {
@@ -390,16 +375,13 @@ internal class GameApiClient : IGameApiClient
         parameters["Key"] = key;
 
         var document = await GetAsync(
-                       apiUrl,
-                       "/api1/LoginWithoutRedirect",
-                       parameters,
-                       "LoginWithoutRedirect",
-                       cancellationToken).ConfigureAwait(false);
-
-        if (document is null)
-        {
-            throw new Exception("Document is empty.");
-        }
+                apiUrl: apiUrl,
+                path: "/api1/LoginWithoutRedirect",
+                parameters: parameters,
+                logPrefix: "LoginWithoutRedirect",
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false)
+            ?? throw new Exception("Document is empty.");
 
         if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
         {
@@ -459,16 +441,13 @@ internal class GameApiClient : IGameApiClient
         parameters["FilterAgent"] = "1";
 
         var document = await GetAsync(
-                       apiUrl,
-                       "/api1/GetBetRecordByTime",
-                       parameters,
-                       "GetBetRecordByTime",
-                       cancellationToken).ConfigureAwait(false);
-
-        if (document is null)
-        {
-            throw new Exception("Document is empty.");
-        }
+                apiUrl: apiUrl,
+                path: "/api1/GetBetRecordByTime",
+                parameters: parameters,
+                logPrefix: "GetBetRecordByTime",
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false)
+            ?? throw new Exception("Document is empty.");
 
         if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
         {
@@ -574,7 +553,7 @@ internal class GameApiClient : IGameApiClient
             responseMessage = await sr.ReadToEndAsync().ConfigureAwait(false);
         }
 
-        var apiLogEvent = new ApiLogEvent
+        var apiLogEvent = new GameApiLogEvent
         {
             Path = httpResponseMessage.RequestMessage?.RequestUri?.AbsoluteUri.NoLongerThan(512) ?? string.Empty,
             Method = httpResponseMessage.RequestMessage?.Method.ToString().NoLongerThan(8) ?? string.Empty,
@@ -588,7 +567,6 @@ internal class GameApiClient : IGameApiClient
             ExecutionTimeMs = (int)sw.ElapsedMilliseconds,
             RecordedOn = DateTimeOffset.UtcNow
         };
-        _tgsLog.LogApi(apiLogEvent);
         _logger.LogInformation("{apiLogEvent}", JsonSerializer.Serialize(apiLogEvent));
 
         _ = httpResponseMessage.EnsureSuccessStatusCode();
@@ -620,7 +598,7 @@ internal class GameApiClient : IGameApiClient
             responseMessage = await sr.ReadToEndAsync().ConfigureAwait(false) ?? string.Empty;
         }
 
-        var apiLogEvent = new ApiLogEvent
+        var apiLogEvent = new GameApiLogEvent
         {
             Path = httpResponseMessage.RequestMessage?.RequestUri?.AbsoluteUri.NoLongerThan(512) ?? string.Empty,
             Method = httpResponseMessage.RequestMessage?.Method.ToString().NoLongerThan(8) ?? string.Empty,
@@ -634,7 +612,6 @@ internal class GameApiClient : IGameApiClient
             ExecutionTimeMs = (int)sw.ElapsedMilliseconds,
             RecordedOn = DateTimeOffset.UtcNow
         };
-        _tgsLog.LogApi(apiLogEvent);
         _logger.LogInformation("{apiLogEvent}", JsonSerializer.Serialize(apiLogEvent));
 
         _ = httpResponseMessage.EnsureSuccessStatusCode();
