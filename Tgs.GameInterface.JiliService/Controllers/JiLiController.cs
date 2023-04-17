@@ -274,7 +274,7 @@ public class JiLiController : ControllerBase
                          BetAmount: transaction.BetAmount,
                          PayoffTime: transaction.PayoffTime,
                          PayoffAmount: transaction.PayoffAmount,
-                         Status: (GameInterfaceJiliServiceGamePullRecordStatus)transaction.Status,
+                         Status: (GamePullRecordStatus)transaction.Status,
                          SettlementTime: transaction.SettlementTime,
                          GameCategoryId: transaction.GameCategoryId,
                          Type: transaction.Type,
