@@ -7,4 +7,4 @@ public record GameRecordQuery(
     DateTimeOffset StartTime,
     DateTimeOffset EndTime,
     int Page = 1,
-    int PageLimit = 300);
+    int PageLimit = 10000);

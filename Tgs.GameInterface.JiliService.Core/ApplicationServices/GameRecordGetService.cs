@@ -50,6 +50,7 @@ internal class GameRecordGetService : IQueryService<GameRecordQuery, GameRecordR
                 GameCategoryId: transaction.GameCategoryId,
                 Type: transaction.Type,
                 AgentId: transaction.AgentId,
+                Turnover: transaction.Turnover,
                 AdditionalData: transaction.AdditionalData);
         }
     }

@@ -13,4 +13,5 @@ public record GameRecordResult(
     int GameCategoryId,
     int Type,
     string AgentId,
+    decimal Turnover,
     string AdditionalData);

@@ -20,33 +20,31 @@ public class GetBetRecordByTimeUnitTest
 
         var response = new
         {
-            ErrorCode = "0",
-            Message = string.Empty,
+            ErrorCode = 0,
+            Message = "",
             Data = new
             {
-                Result = new[] {
-                    new
-                    {
-                        Account = "4ucmqplxb029",
-                        WagersId = 1655343469000372013,
-                        GameId = 13,
-                        WagersTime = "2022-06-16T10:03:07-04:00",
-                        BetAmount = -3,
-                        PayoffTime = "2022-06-16T10:03:07-04:00",
-                        PayoffAmount = 0,
-                        Status = 2,
-                        SettlementTime = "2022-06-16T10:03:07-04:00",
-                        GameCategoryId = 1,
-                        VersionKey = 0,
-                        Type = 1,
-                        AgentId = "PG_GPI_CNY"
-                    }
+                Result = new[]{
+                   new{ Account="4uiuj5ovw7zk",
+                    WagersId=1680840597057173115,
+                    GameId=115,
+                    WagersTime="2023-04-17T21:40:53-04:00",
+                    BetAmount=-1m,
+                    PayoffTime="2023-04-17T21:40:53-04:00",
+                    PayoffAmount=0.8m,
+                    Status=2,
+                    SettlementTime="2023-04-17T21:40:53-04:00",
+                    GameCategoryId=1,
+                    VersionKey=0,
+                    Type=1,
+                    AgentId="PG_GPI_CNY",
+                    Turnover=1m}
                 },
                 Pagination = new
                 {
                     CurrentPage = 1,
                     TotalPages = 1,
-                    PageLimit = 100,
+                    PageLimit = 1000,
                     TotalNumber = 1
                 }
             }
@@ -55,7 +53,7 @@ public class GetBetRecordByTimeUnitTest
         var content = JsonSerializer.Serialize(response);
         var handler = new MockHttpMessageHandler();
         _ = handler.When(HttpMethod.Get, "/api1/GetBetRecordByTime")
-            .Respond(HttpStatusCode.OK, new StringContent(content));
+                    .Respond(HttpStatusCode.OK, new StringContent(content));
 
         var fakeLog = NullLogger<GameApiClient>.Instance;
         var fakeHttpClient = handler.ToHttpClient();
@@ -74,7 +72,8 @@ public class GetBetRecordByTimeUnitTest
             .ConfigureAwait(false);
 
         Assert.IsNotNull(atual);
-        Assert.IsTrue(atual.Single().BetAmount > 0);
+        Assert.AreEqual(atual.Single().BetAmount, 1);
+        Assert.AreEqual(atual.Single().Turnover, 1);
         Assert.AreEqual(atual.Single().AdditionalData, JsonSerializer.Serialize(response.Data.Result.Single()));
     }
 

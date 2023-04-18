@@ -140,7 +140,8 @@ message GamePullRecord {
 	int32 game_category_id = 10;
 	int32 type = 11;
 	string agent_id = 12;
-	string additional_data = 13;
+	phoenix.protobuf.DecimalValue turnover = 13;
+	string additional_data = 14;
 }
 
 enum GamePullRecordStatus {

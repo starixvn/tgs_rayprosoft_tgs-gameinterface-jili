@@ -288,6 +288,7 @@ internal class GameApiClient : IGameApiClient
                 VersionKey = transaction.GetProperty("VersionKey").GetInt32(),
                 Type = transaction.GetProperty("Type").GetInt32(),
                 AgentId = transaction.GetProperty("AgentId").ToString(),
+                Turnover = transaction.GetProperty("Turnover").GetDecimal(),
                 AdditionalData = transaction.ToString()
             };
         }
@@ -494,6 +495,7 @@ internal class GameApiClient : IGameApiClient
                 VersionKey = transaction.GetProperty("VersionKey").GetInt32(),
                 Type = transaction.GetProperty("Type").GetInt32(),
                 AgentId = transaction.GetProperty("AgentId").ToString(),
+                Turnover = transaction.GetProperty("Turnover").GetDecimal(),
                 AdditionalData = transaction.ToString()
             };
         }

@@ -14,4 +14,6 @@ public record GamePullRecordResultViewModel(
     DateTimeOffset SettlementTime,
     int GameCategoryId,
     int Type,
-    string AgentId);
+    string AgentId,
+    decimal Turnover,
+    string AdditionalData);

@@ -55,5 +55,10 @@ public record GetBetRecordTransaction
     /// </summary>
     public string AgentId { get; set; } = default!;
 
+    /// <summary>
+    /// The turnover
+    /// </summary>
+    public decimal Turnover { get; set; }
+
     public string AdditionalData { get; set; } = default!;
 }

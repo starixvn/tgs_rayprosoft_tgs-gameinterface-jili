@@ -7,4 +7,4 @@ public record GamePullRecordQueryViewModel(
     DateTimeOffset StartTime,
     DateTimeOffset EndTime,
     int Page = 1,
-    int PageLimit = 100);
+    int PageLimit = 10000);

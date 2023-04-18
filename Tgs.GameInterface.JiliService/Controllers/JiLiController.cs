@@ -238,17 +238,17 @@ public class JiLiController : ControllerBase
     ///             "apiUrl": "https://uat-wb-api.jlfafafa2.com/",
     ///             "agentId": "PG_GPI_CNY",
     ///             "agentKey": "82af5971ae233eaa003b774be4079e7902ea7ff4",
-    ///             "startTime": "2022-06-16T13:00:00.000Z",
-    ///             "endTime": "2022-06-16T14:00:00.000Z",
+    ///             "startTime": "2023-04-18T01:00:00.000Z",
+    ///             "endTime": "2023-04-18T02:00:00.000Z",
     ///             "page": 1,
-    ///             "pageLimit": 100
+    ///             "pageLimit": 10000
     ///         }
     ///
     /// </remarks>
     [HttpPost("game/pullrecord")]
     public async IAsyncEnumerable<GamePullRecordResultViewModel> GetGamePullRecordAsync(
-            [FromServices] IQueryService<GameRecordQuery, GameRecordResult> service,
-            GamePullRecordQueryViewModel model)
+        [FromServices] IQueryService<GameRecordQuery, GameRecordResult> service,
+        GamePullRecordQueryViewModel model)
     {
         var result = await service.QueryAsync(new GameRecordQuery(
             ApiUrl: model.ApiUrl,
@@ -278,7 +278,9 @@ public class JiLiController : ControllerBase
                          SettlementTime: transaction.SettlementTime,
                          GameCategoryId: transaction.GameCategoryId,
                          Type: transaction.Type,
-                         AgentId: transaction.AgentId);
+                         AgentId: transaction.AgentId,
+                         Turnover: transaction.Turnover,
+                         AdditionalData: transaction.AdditionalData);
         }
     }
 

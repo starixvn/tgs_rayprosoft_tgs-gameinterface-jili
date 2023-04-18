@@ -184,6 +184,7 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
                 GameCategoryId = transaction.GameCategoryId,
                 Type = transaction.Type,
                 AgentId = transaction.AgentId,
+                Turnover = transaction.Turnover,
                 AdditionalData = transaction.AdditionalData
             });
         };

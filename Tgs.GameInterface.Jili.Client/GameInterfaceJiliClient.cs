@@ -83,7 +83,7 @@ internal class GameInterfaceJiliClient : IGameInterfaceJiliClient
         return reply.Url.ToString();
     }
 
-    public async ValueTask<GamePullRecordReply> GetGamePullRecordAsync(Uri apiUrl, string agentId, string agentKey, DateTimeOffset startTime, DateTimeOffset endTime, int page = 1, int pageLimit = 100, CancellationToken cancellationToken = default)
+    public async ValueTask<GamePullRecordReply> GetGamePullRecordAsync(Uri apiUrl, string agentId, string agentKey, DateTimeOffset startTime, DateTimeOffset endTime, int page = 1, int pageLimit = 10000, CancellationToken cancellationToken = default)
         => await _client.GetGamePullRecordAsync(new GamePullRecordRequest()
         {
             ApiUrl = apiUrl.ToString(),
