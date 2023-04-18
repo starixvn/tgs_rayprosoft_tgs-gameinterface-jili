@@ -1,8 +1,8 @@
 ﻿using Tgs.GameInterface.JiliService.Protos;
 
-namespace Tgs.GameInterface.JiliService.Client;
+namespace Tgs.GameInterface.Jili.Client;
 
-public interface IGameInterfaceJiliServiceClient
+public interface IGameInterfaceJiliClient
 {
     ValueTask CreatePlayerAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, CancellationToken cancellationToken = default);
 

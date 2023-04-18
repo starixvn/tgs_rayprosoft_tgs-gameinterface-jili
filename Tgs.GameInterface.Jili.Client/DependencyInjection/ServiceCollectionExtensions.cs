@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using Tgs.GameInterface.JiliService.Client;
+using Tgs.GameInterface.Jili.Client;
 using Tgs.GameInterface.JiliService.Protos;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -8,14 +8,14 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddGameInterfaceJiliServiceClient(
         this IServiceCollection services,
-        Action<GameInterfaceJiliServiceClientOptions, IServiceProvider> configure)
+        Action<GameInterfaceJiliClientOptions, IServiceProvider> configure)
         => services
-            .AddOptions<GameInterfaceJiliServiceClientOptions>()
+            .AddOptions<GameInterfaceJiliClientOptions>()
             .Configure(configure)
             .Services
             .AddGrpcClient<GameInterfaceJiliService.GameInterfaceJiliServiceClient>((sp, configureClient) =>
             {
-                var options = sp.GetRequiredService<IOptions<GameInterfaceJiliServiceClientOptions>>().Value;
+                var options = sp.GetRequiredService<IOptions<GameInterfaceJiliClientOptions>>().Value;
                 configureClient.Address = options.BaseUrl;
             })
             .ConfigureChannel((sp, configureChannel) =>
@@ -33,5 +33,5 @@ public static class ServiceCollectionExtensions
             .Services
             .AddSingleton<DiagnosticsInterceptorOptions>()
             .AddSingleton<LoggingInterceptor>()
-            .AddTransient<IGameInterfaceJiliServiceClient, GameInterfaceJiliServiceClient>();
+            .AddTransient<IGameInterfaceJiliClient, GameInterfaceJiliClient>();
 }
