@@ -59,14 +59,14 @@ push-nuget:
   only:
     - main
   script:
-    - dotnet pack -c $BuildConfiguration "Tgs.GameInterface.JiliService.Client/Tgs.GameInterface.JiliService.Client.csproj" --no-build --no-restore
-    - dotnet nuget push "Tgs.GameInterface.JiliService.Client/bin/$BuildConfiguration/*.nupkg" --source "raypro-baget" -k $NugetApiKey --skip-duplicate
+    - dotnet pack -c $BuildConfiguration "Tgs.GameInterface.Jili.Client/Tgs.GameInterface.Jili.Client.csproj" --no-build --no-restore
+    - dotnet nuget push "Tgs.GameInterface.Jili.Client/bin/$BuildConfiguration/*.nupkg" --source "raypro-baget" -k $NugetApiKey --skip-duplicate
   artifacts:
     name: Nuget
     untracked: false
     expire_in: "30 days"
     paths:
-      - Tgs.GameInterface.JiliService.Client/bin/$BuildConfiguration/*.nupkg
+      - Tgs.GameInterface.Jili.Client/bin/$BuildConfiguration/*.nupkg
 
 push-docker-image:
   stage: publish
