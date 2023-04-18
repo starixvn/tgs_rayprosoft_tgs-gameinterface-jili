@@ -287,7 +287,8 @@ internal class GameApiClient : IGameApiClient
                 GameCategoryId = transaction.GetProperty("GameCategoryId").GetInt32(),
                 VersionKey = transaction.GetProperty("VersionKey").GetInt32(),
                 Type = transaction.GetProperty("Type").GetInt32(),
-                AgentId = transaction.GetProperty("AgentId").ToString()
+                AgentId = transaction.GetProperty("AgentId").ToString(),
+                AdditionalData = transaction.ToString()
             };
         }
     }
@@ -492,9 +493,58 @@ internal class GameApiClient : IGameApiClient
                 GameCategoryId = transaction.GetProperty("GameCategoryId").GetInt32(),
                 VersionKey = transaction.GetProperty("VersionKey").GetInt32(),
                 Type = transaction.GetProperty("Type").GetInt32(),
-                AgentId = transaction.GetProperty("AgentId").ToString()
+                AgentId = transaction.GetProperty("AgentId").ToString(),
+                AdditionalData = transaction.ToString()
             };
         }
+    }
+
+    public async ValueTask<string> GetGameDetailUrlAsync(
+        Uri apiUrl,
+        string agentId,
+        string agentKey,
+        string wagersId,
+        string lang,
+        CancellationToken cancellationToken = default)
+    {
+        var parameters = new Dictionary<string, string>
+        {
+            ["WagersId"] = wagersId,
+            ["AgentId"] = agentId
+        };
+
+        var keyParameters = new Dictionary<string, string>
+        {
+            ["WagersId"] = wagersId,
+            ["AgentId"] = agentId
+        };
+
+        var keyGen = GetKeyGen(agentId, agentKey);
+        var key = GetKey(keyGen, keyParameters);
+        parameters["Key"] = key;
+        parameters["Lang"] = lang;
+
+        var document = await PostAsync(
+                apiUrl: apiUrl,
+                path: "/api1/GetGameDetailUrl",
+                parameters: parameters,
+                logPrefix: "GetGameDetailUrl",
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false)
+            ?? throw new Exception("Document is empty.");
+
+        if (!document.RootElement.TryGetProperty("ErrorCode", out var jsonErrorCode))
+        {
+            throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})");
+        }
+
+        var errorCode = jsonErrorCode.ToString();
+
+        return errorCode is not "0"
+            ? throw new Exception($"Game provider error.({JsonSerializer.Serialize(document.RootElement.GetProperty("Message").ToString())})")
+            : !document.RootElement.TryGetProperty("Data", out var jsonData)
+            ? throw new Exception($"JsonElement parsing failed.({JsonSerializer.Serialize(document)})")
+            : jsonData.GetProperty("Url").ToString();
     }
 
     private static string GetKey(string keyGen, IEnumerable<KeyValuePair<string, string>> parameters)

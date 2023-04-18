@@ -54,4 +54,6 @@ public record GetBetRecordTransaction
     /// The agent identifier
     /// </summary>
     public string AgentId { get; set; } = default!;
+
+    public string AdditionalData { get; set; } = default!;
 }

@@ -75,6 +75,7 @@ public class GetBetRecordByTimeUnitTest
 
         Assert.IsNotNull(atual);
         Assert.IsTrue(atual.Single().BetAmount > 0);
+        Assert.AreEqual(atual.Single().AdditionalData, JsonSerializer.Serialize(response.Data.Result.Single()));
     }
 
     [TestMethod]

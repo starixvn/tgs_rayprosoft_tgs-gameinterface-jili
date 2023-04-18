@@ -3,7 +3,7 @@ using NSubstitute.ExceptionExtensions;
 using Tgs.GameInterface.JiliService.Core.ApplicationServices;
 using Tgs.GameInterface.JiliService.Core.Models;
 
-namespace Tgs.GameInterface.JiliService.Core.UnitTest;
+namespace Tgs.GameInterface.JiliService.Core.UnitTest.ApplicationServices;
 
 [TestClass]
 public class GameUrlGetServiceUnitTest

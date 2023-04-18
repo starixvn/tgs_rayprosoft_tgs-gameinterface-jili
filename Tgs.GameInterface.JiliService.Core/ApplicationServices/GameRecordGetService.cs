@@ -38,18 +38,19 @@ internal class GameRecordGetService : IQueryService<GameRecordQuery, GameRecordR
         foreach (var transaction in transactions)
         {
             yield return new GameRecordResult(
-                         Account: transaction.Account,
-                         WagersId: transaction.WagersId,
-                         GameId: transaction.GameId,
-                         WagersTime: transaction.WagersTime,
-                         BetAmount: transaction.BetAmount,
-                         PayoffTime: transaction.PayoffTime,
-                         PayoffAmount: transaction.PayoffAmount,
-                         Status: transaction.Status,
-                         SettlementTime: transaction.SettlementTime,
-                         GameCategoryId: transaction.GameCategoryId,
-                         Type: transaction.Type,
-                         AgentId: transaction.AgentId);
+                Account: transaction.Account,
+                WagersId: transaction.WagersId,
+                GameId: transaction.GameId,
+                WagersTime: transaction.WagersTime,
+                BetAmount: transaction.BetAmount,
+                PayoffTime: transaction.PayoffTime,
+                PayoffAmount: transaction.PayoffAmount,
+                Status: transaction.Status,
+                SettlementTime: transaction.SettlementTime,
+                GameCategoryId: transaction.GameCategoryId,
+                Type: transaction.Type,
+                AgentId: transaction.AgentId,
+                AdditionalData: transaction.AdditionalData);
         }
     }
 }

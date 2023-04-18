@@ -16,6 +16,7 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
     private readonly IQueryService<GameRecordQuery, GameRecordResult> _gameRecordService;
     private readonly IGetService<GameUrlQuery, GameUrlResult> _gameUrlService;
     private readonly ICommandService<KickMemberCommand> _kickMemberService;
+    private readonly IGetService<GameDetailQuery, string> _gameDetailService;
 
     public GameInterfaceJiliGrpcService(
          IGetService<BalanceQuery, BalanceResult> balanceService,
@@ -25,7 +26,8 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
          IGetService<FundOutQuery, FundOutResult> fundOutService,
          IQueryService<GameRecordQuery, GameRecordResult> gameRecordService,
          IGetService<GameUrlQuery, GameUrlResult> gameUrlService,
-         ICommandService<KickMemberCommand> kickMemberService
+         ICommandService<KickMemberCommand> kickMemberService,
+         IGetService<GameDetailQuery, string> gameDetailService
          )
     {
         _balanceService = balanceService ?? throw new ArgumentNullException(nameof(balanceService));
@@ -36,6 +38,7 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
         _gameRecordService = gameRecordService ?? throw new ArgumentNullException(nameof(gameRecordService));
         _gameUrlService = gameUrlService ?? throw new ArgumentNullException(nameof(gameUrlService));
         _kickMemberService = kickMemberService ?? throw new ArgumentNullException(nameof(kickMemberService));
+        _gameDetailService = gameDetailService ?? throw new ArgumentNullException(nameof(gameDetailService));
     }
 
     public override async Task<BaseReply> CreatePlayer(CreatePlayerRequest request, ServerCallContext context)
@@ -127,6 +130,26 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
         };
     }
 
+    public override async Task<GameDetailReply> GetGameDetailUrl(GameDetailRequest request, ServerCallContext context)
+
+    {
+        var result = await _gameDetailService
+            .GetAsync(
+                query: new GameDetailQuery(
+                    ApiUrl: new(request.ApiUrl),
+                    AgentId: request.AgentId,
+                    AgentKey: request.AgentKey,
+                    WagersId: request.WagersId,
+                    Language: request.Language),
+                cancellationToken: context.CancellationToken)
+            .ConfigureAwait(false);
+
+        return new GameDetailReply()
+        {
+            Url = result ?? String.Empty,
+        };
+    }
+
     public override async Task<GamePullRecordReply> GetGamePullRecord(GamePullRecordRequest request, ServerCallContext context)
     {
         var result = await _gameRecordService.QueryAsync(new GameRecordQuery(
@@ -160,7 +183,8 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
                 SettlementTime = transaction.SettlementTime.ToTimestamp(),
                 GameCategoryId = transaction.GameCategoryId,
                 Type = transaction.Type,
-                AgentId = transaction.AgentId
+                AgentId = transaction.AgentId,
+                AdditionalData = transaction.AdditionalData
             });
         };
 

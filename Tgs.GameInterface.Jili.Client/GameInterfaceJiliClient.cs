@@ -65,6 +65,24 @@ internal class GameInterfaceJiliClient : IGameInterfaceJiliClient
             PlayerCode = playerCode,
         }, cancellationToken: cancellationToken).ConfigureAwait(false);
 
+    public async ValueTask<string> GetGameDetailUrlAsync(Uri apiUrl, string agentId, string agentKey, string wagersId, string language, CancellationToken cancellationToken = default)
+    {
+        var reply = await _client
+            .GetGameDetailUrlAsync(
+                request: new GameDetailRequest()
+                {
+                    ApiUrl = apiUrl.ToString(),
+                    AgentId = agentId,
+                    AgentKey = agentKey,
+                    WagersId = wagersId,
+                    Language = language
+                },
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+
+        return reply.Url.ToString();
+    }
+
     public async ValueTask<GamePullRecordReply> GetGamePullRecordAsync(Uri apiUrl, string agentId, string agentKey, DateTimeOffset startTime, DateTimeOffset endTime, int page = 1, int pageLimit = 100, CancellationToken cancellationToken = default)
         => await _client.GetGamePullRecordAsync(new GamePullRecordRequest()
         {

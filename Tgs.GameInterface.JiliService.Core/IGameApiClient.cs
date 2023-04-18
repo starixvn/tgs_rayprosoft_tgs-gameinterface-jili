@@ -19,4 +19,6 @@ public interface IGameApiClient
     ValueTask KickMemberAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, CancellationToken cancellationToken = default);
 
     ValueTask<LoginWithoutRedirectResult> LoginWithoutRedirectAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, string gameId, string lang, CancellationToken cancellationToken = default);
+
+    ValueTask<string> GetGameDetailUrlAsync(Uri apiUrl, string agentId, string agentKey, string wagersId, string lang, CancellationToken cancellationToken = default);
 }

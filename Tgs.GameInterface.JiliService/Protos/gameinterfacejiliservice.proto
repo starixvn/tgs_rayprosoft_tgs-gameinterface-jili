@@ -18,6 +18,7 @@ service GameInterfaceJiliService {
   rpc KickPlayer (KickPlayerRequest) returns (BaseReply);
   rpc GetGameUrl (GameUrlRequest) returns (GameUrlReply);
   rpc GetGamePullRecord (GamePullRecordRequest) returns (GamePullRecordReply);
+  rpc GetGameDetailUrl (GameDetailRequest) returns (GameDetailReply);
 }
 
 // The request message containing the user's name.
@@ -77,6 +78,14 @@ message GamePullRecordRequest {
 	int32 page_limit = 7;
 }
 
+message GameDetailRequest{
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string wagers_id = 4;
+	string language = 5;
+}
+
 // The response message containing the greetings.
 message BaseReply {
 	bool success = 1;
@@ -110,6 +119,10 @@ message GameUrlReply {
 	string game_url = 4;
 }
 
+message GameDetailReply{
+	string url = 1;
+}
+
 message GamePullRecordReply {
 	repeated GamePullRecord items = 1;
 }
@@ -127,6 +140,7 @@ message GamePullRecord {
 	int32 game_category_id = 10;
 	int32 type = 11;
 	string agent_id = 12;
+	string additional_data = 13;
 }
 
 enum GamePullRecordStatus {

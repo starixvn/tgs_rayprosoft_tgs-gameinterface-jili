@@ -2,7 +2,7 @@
 using NSubstitute.ExceptionExtensions;
 using Tgs.GameInterface.JiliService.Core.ApplicationServices;
 
-namespace Tgs.GameInterface.JiliService.Core.UnitTest;
+namespace Tgs.GameInterface.JiliService.Core.UnitTest.ApplicationServices;
 
 [TestClass]
 public class CreatePlayerCommandServiceUnitTest

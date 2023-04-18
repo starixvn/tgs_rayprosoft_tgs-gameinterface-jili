@@ -12,4 +12,5 @@ public record GameRecordResult(
     DateTimeOffset SettlementTime,
     int GameCategoryId,
     int Type,
-    string AgentId);
+    string AgentId,
+    string AdditionalData);

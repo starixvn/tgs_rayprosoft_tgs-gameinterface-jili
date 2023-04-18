@@ -2,7 +2,7 @@
 using Tgs.GameInterface.JiliService.Core.ApplicationServices;
 using Tgs.GameInterface.JiliService.Core.Models;
 
-namespace Tgs.GameInterface.JiliService.Core.UnitTest;
+namespace Tgs.GameInterface.JiliService.Core.UnitTest.ApplicationServices;
 
 [TestClass]
 public class FundInGetServiceUnitTest
@@ -14,8 +14,8 @@ public class FundInGetServiceUnitTest
         var agentId = "testAgentId";
         var agentKey = "testAgentKey";
         var playerCode = "test";
-        string transactionId = Guid.NewGuid().ToString("N");
-        decimal amount = 100m;
+        var transactionId = Guid.NewGuid().ToString("N");
+        var amount = 100m;
 
         var query = new FundInQuery(
             ApiUrl: apiUrl,

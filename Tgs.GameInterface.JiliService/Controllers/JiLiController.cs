@@ -308,4 +308,33 @@ public class JiLiController : ControllerBase
         AgentId: model.AgentId,
         AgentKey: model.AgentKey,
         PlayerCode: model.PlayerCode));
+
+    /// <summary>
+    /// Gets the game detail URL asynchronous.
+    /// </summary>
+    /// <param name="service">The service.</param>
+    /// <param name="model">The model.</param>
+    /// <returns></returns>
+    /// <remarks>
+    /// <b>Example</b><br />
+    ///
+    ///     Post
+    ///         {
+    ///             "apiUrl": "https://uat-wb-api.jlfafafa2.com/",
+    ///             "agentId": "PG_GPI_CNY",
+    ///             "agentKey": "82af5971ae233eaa003b774be4079e7902ea7ff4",
+    ///             "wagersId": "1680840597057173115",
+    ///             "language": "zh-CN"
+    ///         }
+    /// </remarks>
+    [HttpPost("GameDetail")]
+    public ValueTask<string> GetGameDetailUrlAsync(
+        [FromServices] IGetService<GameDetailQuery, string> service,
+        GameDetailQueryViewModel model)
+    => service.GetAsync(new GameDetailQuery(
+        ApiUrl: model.ApiUrl,
+        AgentId: model.AgentId,
+        AgentKey: model.AgentKey,
+        WagersId: model.WagersId,
+        Language: model.Language));
 }
