@@ -1,13 +1,13 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Tgs.GameInterface.JiliService.Protos;
 
-namespace Tgs.GameInterface.JiliService.Client;
+namespace Tgs.GameInterface.Jili.Client;
 
-internal class GameInterfaceJiliServiceClient : IGameInterfaceJiliServiceClient
+internal class GameInterfaceJiliClient : IGameInterfaceJiliClient
 {
     private readonly GameInterfaceJiliService.GameInterfaceJiliServiceClient _client;
 
-    public GameInterfaceJiliServiceClient(GameInterfaceJiliService.GameInterfaceJiliServiceClient client)
+    public GameInterfaceJiliClient(GameInterfaceJiliService.GameInterfaceJiliServiceClient client)
     {
         _client = client ?? throw new ArgumentNullException(nameof(client));
     }

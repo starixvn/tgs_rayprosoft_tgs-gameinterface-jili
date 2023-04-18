@@ -2,7 +2,7 @@
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 
-namespace Tgs.GameInterface.JiliService.Client;
+namespace Tgs.GameInterface.Jili.Client;
 
 internal class LoggingInterceptor : Interceptor
 {
