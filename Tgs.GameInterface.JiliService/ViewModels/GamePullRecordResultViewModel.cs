@@ -10,7 +10,7 @@ public record GamePullRecordResultViewModel(
     decimal BetAmount,
     DateTimeOffset PayoffTime,
     decimal PayoffAmount,
-    GameInterfaceJiliServiceGamePullRecordStatus Status,
+    GamePullRecordStatus Status,
     DateTimeOffset SettlementTime,
     int GameCategoryId,
     int Type,

@@ -33,5 +33,5 @@ public static class ServiceCollectionExtensions
             .Services
             .AddSingleton<DiagnosticsInterceptorOptions>()
             .AddSingleton<LoggingInterceptor>()
-            .AddTransient<IGameInterfaceJiliServiceGrpc, GameInterfaceJiliServiceGrpc>();
+            .AddTransient<IGameInterfaceJiliServiceClient, GameInterfaceJiliServiceClient>();
 }

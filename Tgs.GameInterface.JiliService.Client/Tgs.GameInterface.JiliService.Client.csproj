@@ -4,7 +4,7 @@
 		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Version>0.0.2</Version>
+		<Version>0.0.3</Version>
 		<Authors>Raypro</Authors>
 		<RootNamespace>Tgs.GameInterface.Jili.Client</RootNamespace>
 		<PackageId>Tgs.GameInterface.Jili.Client</PackageId>
@@ -16,9 +16,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Protos\**" />
+	  <EmbeddedResource Remove="Protos\**" />
+	  <None Remove="Protos\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.52.0" />
 		<PackageReference Include="Grpc.Net.ClientFactory" Version="2.52.0" />
-		<PackageReference Include="Grpc.Tools" Version="2.53.0">
+		<PackageReference Include="Grpc.Tools" Version="2.54.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -26,13 +32,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Protos\" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Protobuf Include="..\Tgs.GameInterface.JiliService\Protos\gameinterfacejiliservice.proto" GrpcServices="Client">
-			<Link>Protos\gameinterfacejiliservice.proto</Link>
-		</Protobuf>
+	  <Protobuf Include="..\Tgs.GameInterface.JiliService\Protos\gameinterfacejiliservice.proto">
+	    <Link>gameinterfacejiliservice.proto</Link>
+	  </Protobuf>
 	</ItemGroup>
 
 </Project>
