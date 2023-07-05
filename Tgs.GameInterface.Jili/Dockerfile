@@ -8,19 +8,19 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 ARG BuildConfiguration=Release
 WORKDIR /src
-COPY ["NuGet.config", "."]
-COPY ["Tgs.GameInterface.JiliService/Tgs.GameInterface.JiliService.csproj", "Tgs.GameInterface.JiliService/"]
-COPY ["Tgs.GameInterface.JiliService.Core/Tgs.GameInterface.JiliService.Core.csproj", "Tgs.GameInterface.JiliService.Core/"]
-RUN dotnet restore "Tgs.GameInterface.JiliService/Tgs.GameInterface.JiliService.csproj"
+COPY ["nuget.config", "."]
+COPY ["Tgs.GameInterface.Jili/Tgs.GameInterface.Jili.csproj", "Tgs.GameInterface.Jili/"]
+COPY ["Tgs.GameInterface.Jili.Core/Tgs.GameInterface.Jili.Core.csproj", "Tgs.GameInterface.Jili.Core/"]
+RUN dotnet restore "Tgs.GameInterface.Jili/Tgs.GameInterface.Jili.csproj"
 COPY . .
-WORKDIR "/src/Tgs.GameInterface.JiliService"
-RUN dotnet build "Tgs.GameInterface.JiliService.csproj" -c $BuildConfiguration -o /app/build
+WORKDIR "/src/Tgs.GameInterface.Jili"
+RUN dotnet build "Tgs.GameInterface.Jili.csproj" -c $BuildConfiguration -o /app/build
 
 FROM build AS publish
 ARG BuildConfiguration
-RUN dotnet publish "Tgs.GameInterface.JiliService.csproj" -c $BuildConfiguration -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Tgs.GameInterface.Jili.csproj" -c $BuildConfiguration -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Tgs.GameInterface.JiliService.dll"]
+ENTRYPOINT ["dotnet", "Tgs.GameInterface.Jili.dll"]
