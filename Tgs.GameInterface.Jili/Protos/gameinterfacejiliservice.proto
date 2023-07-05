@@ -1,0 +1,160 @@
+﻿syntax = "proto3";
+
+import "phoenix/protobuf/decimal.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Tgs.GameInterface.JiliService.Protos";
+
+package GameInterfaceJiliService;
+
+// The greeting service definition.
+service GameInterfaceJiliService {
+  // Sends a greeting
+  rpc CreatePlayer (CreatePlayerRequest) returns (BaseReply);
+  rpc FundIn (FundRequest) returns (FundReply);
+  rpc FundOrderChecking(FundOrderCheckingRequest) returns (FundOrderCheckingReply);
+  rpc FundOut (FundRequest) returns (FundReply);
+  rpc GetBalance (BalanceRequest) returns (BalanceReply);
+  rpc KickPlayer (KickPlayerRequest) returns (BaseReply);
+  rpc GetGameUrl (GameUrlRequest) returns (GameUrlReply);
+  rpc GetGamePullRecord (GamePullRecordRequest) returns (GamePullRecordReply);
+  rpc GetGameDetailUrl (GameDetailRequest) returns (GameDetailReply);
+  rpc CheckingService(CheckingServiceRequest) returns (CheckingServiceReply);
+}
+
+// The request message containing the user's name.
+message FundRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string player_code = 4;
+	string transaction_id = 5;
+	phoenix.protobuf.DecimalValue amount = 6;
+}
+
+message FundOrderCheckingRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string transaction_id = 4;
+}
+
+message BalanceRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string player_code = 4;
+}
+
+message KickPlayerRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string player_code = 4;
+}
+
+message CreatePlayerRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string player_code = 4;
+}
+
+message GameUrlRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string player_code = 4;
+	string external_game_id = 5;
+	string language = 6;
+}
+
+message GamePullRecordRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	google.protobuf.Timestamp start_time = 4; 
+	google.protobuf.Timestamp end_time = 5;
+	int32 page = 6;
+	int32 page_limit = 7;
+}
+
+message GameDetailRequest{
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string wagers_id = 4;
+	string language = 5;
+}
+
+message CheckingServiceRequest{
+    string machine_name = 1;
+}
+
+// The response message containing the greetings.
+message BaseReply {
+	bool success = 1;
+}
+
+message FundReply {
+	bool success = 1;
+	string message = 2;
+	string transaction_id = 3;
+	phoenix.protobuf.DecimalValue coin_before = 4;
+	phoenix.protobuf.DecimalValue coin_after = 5;
+	phoenix.protobuf.DecimalValue currency_before = 6;
+	phoenix.protobuf.DecimalValue currency_after = 7;
+}
+
+message FundOrderCheckingReply {
+	bool exist = 1;
+}
+
+message BalanceReply {
+	bool success = 1;
+	string message = 2;
+	bool is_player_exist = 3;
+	phoenix.protobuf.DecimalValue balance = 4;
+}
+
+message GameUrlReply {
+	bool success = 1;
+	string message = 2;
+	bool is_player_exist = 3;
+	string game_url = 4;
+}
+
+message GameDetailReply{
+	string url = 1;
+}
+
+message GamePullRecordReply {
+	repeated GamePullRecord items = 1;
+}
+
+message GamePullRecord {
+	string account = 1;
+	string wagers_id = 2;
+    int32 game_id = 3;
+	google.protobuf.Timestamp wagers_time = 4;
+	phoenix.protobuf.DecimalValue bet_amount = 5;
+	google.protobuf.Timestamp payoff_time = 6;
+	phoenix.protobuf.DecimalValue payoff_amount = 7;
+	GamePullRecordStatus Status = 8;
+	google.protobuf.Timestamp settlement_time = 9;
+	int32 game_category_id = 10;
+	int32 type = 11;
+	string agent_id = 12;
+	phoenix.protobuf.DecimalValue turnover = 13;
+	string additional_data = 14;
+}
+
+enum GamePullRecordStatus {
+  JILI_STATUS_UNKNOWN = 0;
+  JILI_STATUS_WIN = 1;
+  JILI_STATUS_LOSE = 2;
+}
+
+message CheckingServiceReply{
+    string machine_name = 1;
+}

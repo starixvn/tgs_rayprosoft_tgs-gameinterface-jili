@@ -32,7 +32,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Protobuf Include="..\Tgs.GameInterface.JiliService\Protos\gameinterfacejiliservice.proto">
+	  <Protobuf Include="..\Tgs.GameInterface.Jili\Protos\gameinterfacejiliservice.proto">
 	    <Link>gameinterfacejiliservice.proto</Link>
 	  </Protobuf>
 	</ItemGroup>

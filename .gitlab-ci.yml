@@ -1,7 +1,7 @@
 variables:
-  ImageName: pgtgs/game-gameinterface-jili-service
-  SettingKey: game-gameinterface-jili-service
-  HelmTemplateFolderName: game-gameinterface-jili-service
+  ImageName: pgtgs/game-gameinterface-jili
+  SettingKey: game-gameinterface-jili
+  HelmTemplateFolderName: game-gameinterface-jili
   BuildCacheKey: Tgs.GameInterface.JiliService.$CI_PIPELINE_ID
 
 default:
@@ -80,7 +80,7 @@ push-docker-image:
     untracked: true   
     policy: pull
   script:
-    - dotnet build "Tgs.GameInterface.JiliService/Tgs.GameInterface.JiliService.csproj" -c $BuildConfiguration -t:ContainerBuild -p:DockerfileTag="$ImageName:$Tag" --no-restore
+    - dotnet build "Tgs.GameInterface.Jili/Tgs.GameInterface.Jili.csproj" -c $BuildConfiguration -t:ContainerBuild -p:DockerfileTag="$ImageName:$Tag" --no-restore
     - docker push $ImageName:$Tag
 
 push-k8s-template:
