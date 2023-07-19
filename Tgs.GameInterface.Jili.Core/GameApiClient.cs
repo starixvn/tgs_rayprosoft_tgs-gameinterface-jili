@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.WebUtilities;
+using System.Web;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Tgs.GameInterface.Jili.Core.Models;
@@ -589,7 +589,14 @@ internal class GameApiClient : IGameApiClient
         logPrefix = $"{nameof(GameApiClient)}.{logPrefix}".ToLower();
 
         var url = new Uri(apiUrl, path);
-        var requestUri = QueryHelpers.AddQueryString(url.OriginalString, parameters.ToDictionary(x => x.Key, x => x.Value));
+        var uriBuilder = new UriBuilder(new Uri(apiUrl, path));
+        var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+        foreach (var parameter in parameters)
+        {
+            query[parameter.Key] = parameter.Value;
+        }
+        uriBuilder.Query = query.ToString();
+        var requestUri = uriBuilder.ToString();
 
         var sw = Stopwatch.StartNew();
 
