@@ -15,33 +15,33 @@ public static class ServiceCollectionExtensions
         var isDns = false;
         _ = services
             .AddOptions<GameInterfaceJiliClientOptions>()
-        .Configure(configure)
-        .Services
-        .AddGrpcClient<GameInterfaceJiliService.GameInterfaceJiliServiceClient>((sp, configureClient) =>
-        {
-            var options = sp.GetRequiredService<IOptions<GameInterfaceJiliClientOptions>>().Value;
-            isDns = options.BaseUrl.Scheme.Equals("dns", StringComparison.OrdinalIgnoreCase);
-            configureClient.Address = options.BaseUrl;
-        })
-        .ConfigureChannel((sp, configureChannel) =>
-        {
-            var handler = new SocketsHttpHandler
+            .Configure(configure)
+            .Services
+            .AddGrpcClient<GameInterfaceJiliService.GameInterfaceJiliServiceClient>((sp, configureClient) =>
             {
-                PooledConnectionIdleTimeout = Timeout.InfiniteTimeSpan,
-                KeepAlivePingDelay = TimeSpan.FromSeconds(60),
-                KeepAlivePingTimeout = TimeSpan.FromSeconds(30),
-                EnableMultipleHttp2Connections = true
-            };
-            configureChannel.HttpHandler = handler;
-            configureChannel.Credentials = isDns
-            ? ChannelCredentials.Insecure
-            : null;
-        })
-        .AddInterceptor<LoggingInterceptor>()
-        .Services
-        .AddSingleton<DiagnosticsInterceptorOptions>()
-        .AddSingleton<LoggingInterceptor>()
-        .AddTransient<IGameInterfaceJiliClient, GameInterfaceJiliClient>();
+                var options = sp.GetRequiredService<IOptions<GameInterfaceJiliClientOptions>>().Value;
+                isDns = options.BaseUrl.Scheme.Equals("dns", StringComparison.OrdinalIgnoreCase);
+                configureClient.Address = options.BaseUrl;
+            })
+            .ConfigureChannel((sp, configureChannel) =>
+            {
+                var handler = new SocketsHttpHandler
+                {
+                    PooledConnectionIdleTimeout = Timeout.InfiniteTimeSpan,
+                    KeepAlivePingDelay = TimeSpan.FromSeconds(60),
+                    KeepAlivePingTimeout = TimeSpan.FromSeconds(30),
+                    EnableMultipleHttp2Connections = true
+                };
+                configureChannel.HttpHandler = handler;
+                configureChannel.Credentials = isDns
+                ? ChannelCredentials.Insecure
+                : null;
+            })
+            .AddInterceptor<LoggingInterceptor>()
+            .Services
+            .AddSingleton<DiagnosticsInterceptorOptions>()
+            .AddSingleton<LoggingInterceptor>()
+            .AddTransient<IGameInterfaceJiliClient, GameInterfaceJiliClient>();
 
         if (isDns)
         {
