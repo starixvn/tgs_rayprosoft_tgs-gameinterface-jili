@@ -4,19 +4,12 @@ using Tgs.ServiceUtility;
 
 namespace Tgs.GameInterface.Jili.Core.ApplicationServices;
 
-internal class GameRecordGetService : IQueryService<GameRecordQuery, GameRecordResult>
+internal class GameRecordGetService(
+    IGameApiClient client) : IQueryService<GameRecordQuery, GameRecordResult>
 {
-    private readonly IGameApiClient _client;
-
-    public GameRecordGetService(
-        IGameApiClient client)
-    {
-        _client = client ?? throw new ArgumentNullException(nameof(client));
-    }
-
     public async IAsyncEnumerable<GameRecordResult> QueryAsync(GameRecordQuery query, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var transactions = await _client
+        var transactions = await client
             .GetBetRecordByTimeAsync(
                 apiUrl: query.ApiUrl,
                 agentId: query.AgentId,

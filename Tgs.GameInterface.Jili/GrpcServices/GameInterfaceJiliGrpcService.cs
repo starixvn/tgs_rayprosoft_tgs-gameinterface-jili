@@ -6,47 +6,21 @@ using Tgs.ServiceUtility;
 
 namespace Tgs.GameInterface.Jili.GrpcServices;
 
-public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfaceJiliServiceBase
+public class GameInterfaceJiliGrpcService(
+    ILogger<GameInterfaceJiliGrpcService> logger,
+     IGetService<BalanceQuery, BalanceResult> balanceService,
+     ICommandService<CreatePlayerCommand> createPlayerService,
+     IGetService<FundInQuery, FundInResult> fundInService,
+     IGetService<FundOrderCheckingQuery, bool> fundOrderCheckingService,
+     IGetService<FundOutQuery, FundOutResult> fundOutService,
+     IQueryService<GameRecordQuery, GameRecordResult> gameRecordService,
+     IGetService<GameUrlQuery, GameUrlResult> gameUrlService,
+     ICommandService<KickMemberCommand> kickMemberService,
+     IGetService<GameDetailQuery, string> gameDetailService) : GameInterfaceJiliService.GameInterfaceJiliServiceBase
 {
-    private readonly ILogger<GameInterfaceJiliGrpcService> _logger;
-    private readonly IGetService<BalanceQuery, BalanceResult> _balanceService;
-    private readonly ICommandService<CreatePlayerCommand> _createPlayerService;
-    private readonly IGetService<FundInQuery, FundInResult> _fundInService;
-    private readonly IGetService<FundOrderCheckingQuery, bool> _fundOrderCheckingService;
-    private readonly IGetService<FundOutQuery, FundOutResult> _fundOutService;
-    private readonly IQueryService<GameRecordQuery, GameRecordResult> _gameRecordService;
-    private readonly IGetService<GameUrlQuery, GameUrlResult> _gameUrlService;
-    private readonly ICommandService<KickMemberCommand> _kickMemberService;
-    private readonly IGetService<GameDetailQuery, string> _gameDetailService;
-
-    public GameInterfaceJiliGrpcService(
-        ILogger<GameInterfaceJiliGrpcService> logger,
-         IGetService<BalanceQuery, BalanceResult> balanceService,
-         ICommandService<CreatePlayerCommand> createPlayerService,
-         IGetService<FundInQuery, FundInResult> fundInService,
-         IGetService<FundOrderCheckingQuery, bool> fundOrderCheckingService,
-         IGetService<FundOutQuery, FundOutResult> fundOutService,
-         IQueryService<GameRecordQuery, GameRecordResult> gameRecordService,
-         IGetService<GameUrlQuery, GameUrlResult> gameUrlService,
-         ICommandService<KickMemberCommand> kickMemberService,
-         IGetService<GameDetailQuery, string> gameDetailService
-         )
-    {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _balanceService = balanceService ?? throw new ArgumentNullException(nameof(balanceService));
-        _createPlayerService = createPlayerService ?? throw new ArgumentNullException(nameof(createPlayerService));
-        _fundInService = fundInService ?? throw new ArgumentNullException(nameof(fundInService));
-        _fundOrderCheckingService = fundOrderCheckingService ?? throw new ArgumentNullException(nameof(fundOrderCheckingService));
-        _fundOutService = fundOutService ?? throw new ArgumentNullException(nameof(fundOutService));
-        _gameRecordService = gameRecordService ?? throw new ArgumentNullException(nameof(gameRecordService));
-        _gameUrlService = gameUrlService ?? throw new ArgumentNullException(nameof(gameUrlService));
-        _kickMemberService = kickMemberService ?? throw new ArgumentNullException(nameof(kickMemberService));
-        _gameDetailService = gameDetailService ?? throw new ArgumentNullException(nameof(gameDetailService));
-    }
-
     public override Task<CheckingServiceReply> CheckingService(CheckingServiceRequest request, ServerCallContext context)
     {
-        _logger.LogWarning("LogOn:{logOn} Message: Create a check connection.({machineName})", DateTime.Now.ToString("o"), request.MachineName);
+        logger.LogWarning("LogOn:{logOn} Message: Create a check connection.({machineName})", DateTime.Now.ToString("o"), request.MachineName);
 
         return Task.FromResult(new CheckingServiceReply
         {
@@ -56,7 +30,7 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
 
     public override async Task<BaseReply> CreatePlayer(CreatePlayerRequest request, ServerCallContext context)
     {
-        await _createPlayerService.ExecuteAsync(new CreatePlayerCommand(
+        await createPlayerService.ExecuteAsync(new CreatePlayerCommand(
             ApiUrl: new(request.ApiUrl),
             AgentId: request.AgentId,
             AgentKey: request.AgentKey,
@@ -70,7 +44,7 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
 
     public override async Task<FundReply> FundIn(FundRequest request, ServerCallContext context)
     {
-        var result = await _fundInService.GetAsync(new FundInQuery(
+        var result = await fundInService.GetAsync(new FundInQuery(
              ApiUrl: new(request.ApiUrl),
              AgentId: request.AgentId,
              AgentKey: request.AgentKey,
@@ -92,7 +66,7 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
 
     public override async Task<FundOrderCheckingReply> FundOrderChecking(FundOrderCheckingRequest request, ServerCallContext context)
     {
-        var result = await _fundOrderCheckingService.GetAsync(new FundOrderCheckingQuery(
+        var result = await fundOrderCheckingService.GetAsync(new FundOrderCheckingQuery(
              ApiUrl: new(request.ApiUrl),
              AgentId: request.AgentId,
              AgentKey: request.AgentKey,
@@ -106,7 +80,7 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
 
     public override async Task<FundReply> FundOut(FundRequest request, ServerCallContext context)
     {
-        var result = await _fundOutService.GetAsync(new FundOutQuery(
+        var result = await fundOutService.GetAsync(new FundOutQuery(
              ApiUrl: new(request.ApiUrl),
              AgentId: request.AgentId,
              AgentKey: request.AgentKey,
@@ -128,7 +102,7 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
 
     public override async Task<BalanceReply> GetBalance(BalanceRequest request, ServerCallContext context)
     {
-        var result = await _balanceService.GetAsync(new BalanceQuery(
+        var result = await balanceService.GetAsync(new BalanceQuery(
              ApiUrl: new(request.ApiUrl),
              AgentId: request.AgentId,
              AgentKey: request.AgentKey,
@@ -146,7 +120,7 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
     public override async Task<GameDetailReply> GetGameDetailUrl(GameDetailRequest request, ServerCallContext context)
 
     {
-        var result = await _gameDetailService
+        var result = await gameDetailService
             .GetAsync(
                 query: new GameDetailQuery(
                     ApiUrl: new(request.ApiUrl),
@@ -165,7 +139,7 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
 
     public override async Task<GamePullRecordReply> GetGamePullRecord(GamePullRecordRequest request, ServerCallContext context)
     {
-        var result = await _gameRecordService.QueryAsync(new GameRecordQuery(
+        var result = await gameRecordService.QueryAsync(new GameRecordQuery(
             ApiUrl: new(request.ApiUrl),
             AgentId: request.AgentId,
             AgentKey: request.AgentKey,
@@ -207,7 +181,7 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
 
     public override async Task<GameUrlReply> GetGameUrl(GameUrlRequest request, ServerCallContext context)
     {
-        var result = await _gameUrlService.GetAsync(new GameUrlQuery(
+        var result = await gameUrlService.GetAsync(new GameUrlQuery(
              ApiUrl: new(request.ApiUrl),
              AgentId: request.AgentId,
              AgentKey: request.AgentKey,
@@ -226,7 +200,7 @@ public class GameInterfaceJiliGrpcService : GameInterfaceJiliService.GameInterfa
 
     public override async Task<BaseReply> KickPlayer(KickPlayerRequest request, ServerCallContext context)
     {
-        await _kickMemberService.ExecuteAsync(new KickMemberCommand(
+        await kickMemberService.ExecuteAsync(new KickMemberCommand(
                ApiUrl: new(request.ApiUrl),
                AgentId: request.AgentId,
                AgentKey: request.AgentKey,

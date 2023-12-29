@@ -9,28 +9,32 @@
     }
   },
   "profiles": {
-    "Tgs.GameInterface.JiLiService": {
+    "http": {
       "commandName": "Project",
+      "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "swagger",
+      "applicationUrl": "http://localhost:5255",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "OTEL_SERVICE_NAME": "Game-GameInterface-Jili(local)",
-        "NODE_IP": "otel.rpgp.cc"
-      },
-      "applicationUrl": "https://localhost:7255;http://localhost:5255",
-      "dotnetRunMessages": true
+        "NODE_IP": "otel.rpgp.cc",
+        "RELEASE_NAMESPACE": "dev",
+        "POD_IP": "127.0.0.1"
+      }
     },
-    "Docker": {
-      "commandName": "Docker",
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
-      "publishAllPorts": true,
-      "useSSL": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:7255;http://localhost:5255",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "OTEL_SERVICE_NAME": "Game-GameInterface-Jili(local)",
-        "NODE_IP": "otel.rpgp.cc"
+        "NODE_IP": "otel.rpgp.cc",
+        "RELEASE_NAMESPACE": "dev",
+        "POD_IP": "127.0.0.1"
       }
     }
   }

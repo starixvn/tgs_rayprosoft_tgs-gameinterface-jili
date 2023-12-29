@@ -1,8 +1,8 @@
 variables:
   ImageName: pgtgs/game-gameinterface-jili
-  SettingKey: game-gameinterface-jili
+  TgsSettingKey: game-gameinterface-jili
   HelmTemplateFolderName: game-gameinterface-jili
-  BuildCacheKey: Tgs.GameInterface.JiliService.$CI_PIPELINE_ID
+  BuildCacheKey: Tgs.GameInterface.Jili.$CI_PIPELINE_ID
 
 default:
   before_script:
@@ -59,8 +59,8 @@ push-nuget:
   only:
     - main
   script:
-    - dotnet pack -c $BuildConfiguration "Tgs.GameInterface.Jili.Client/Tgs.GameInterface.Jili.Client.csproj" --no-build --no-restore
-    - dotnet nuget push "Tgs.GameInterface.Jili.Client/bin/$BuildConfiguration/*.nupkg" --source "raypro-baget" -k $NugetApiKey --skip-duplicate
+    - dotnet pack -c $BuildConfiguration "Tgs.GameInterface.Jili.Client/Tgs.GameInterface.Jili.Client.csproj" --no-restore
+    - dotnet nuget push "Tgs.GameInterface.Jili.Client/bin/$BuildConfiguration/*.nupkg" -s "raypro-baget" -k $NugetApiKey --skip-duplicate
   artifacts:
     name: Nuget
     untracked: false
@@ -80,7 +80,13 @@ push-docker-image:
     untracked: true   
     policy: pull
   script:
-    - dotnet build "Tgs.GameInterface.Jili/Tgs.GameInterface.Jili.csproj" -c $BuildConfiguration -t:ContainerBuild -p:DockerfileTag="$ImageName:$Tag" --no-restore
+    #- dotnet build "Tgs.GameInterface.Jili/Tgs.GameInterface.Jili.csproj" -c $BuildConfiguration -t:ContainerBuild -p:DockerfileTag="$ImageName:$Tag" --no-restore
+    - dotnet publish "Tgs.GameInterface.Jili" 
+       --os linux --arch x64
+       /t:PublishContainer
+       -c $BuildConfiguration
+       /p:ContainerRepository=$ImageName
+       /p:ContainerImageTag=$Tag
     - docker push $ImageName:$Tag
 
 push-k8s-template:
@@ -121,10 +127,10 @@ deploy-dev:
   before_script:
     - export KUBECONFIG=$KubeConfig_Raypro_dev
   script:
-    - export resources=$(kubectl get cm resources-setting -o jsonpath={.data.$SettingKey})
+    - export resources=$(kubectl get cm resources-setting -o jsonpath={.data.$TgsSettingKey})
     - export dedicated=$(kubectl get cm tgs-settings -o jsonpath={.data.dedicated_game})
     - export node_selector=$(kubectl get cm tgs-settings -o jsonpath={.data.node-selector_game})
-    - export autoscaling=$(kubectl get cm autoscaling-setting -o jsonpath={.data.$SettingKey})
+    - export autoscaling=$(kubectl get cm autoscaling-setting -o jsonpath={.data.$TgsSettingKey})
     - |
       cat << EOF | yq e -P | helm template artifacts/k8s/$HelmTemplateFolderName \
         -n $namespace \
@@ -168,10 +174,10 @@ deploy-staging:
   before_script:
     - export KUBECONFIG=$KubeConfig_Raypro_staging
   script:
-    - export resources=$(kubectl get cm resources-setting -o jsonpath={.data.$SettingKey})
+    - export resources=$(kubectl get cm resources-setting -o jsonpath={.data.$TgsSettingKey})
     - export dedicated=$(kubectl get cm tgs-settings -o jsonpath={.data.dedicated_game})
     - export node_selector=$(kubectl get cm tgs-settings -o jsonpath={.data.node-selector_game})
-    - export autoscaling=$(kubectl get cm autoscaling-setting -o jsonpath={.data.$SettingKey})
+    - export autoscaling=$(kubectl get cm autoscaling-setting -o jsonpath={.data.$TgsSettingKey})
     - |
       cat << EOF | yq e -P | helm template artifacts/k8s/$HelmTemplateFolderName \
         -n $namespace \
@@ -215,10 +221,10 @@ deploy-prod:
   before_script:
     - export KUBECONFIG=$KubeConfig_Raypro_prod
   script:
-    - export resources=$(kubectl get cm resources-setting -o jsonpath={.data.$SettingKey})
+    - export resources=$(kubectl get cm resources-setting -o jsonpath={.data.$TgsSettingKey})
     - export dedicated=$(kubectl get cm tgs-settings -o jsonpath={.data.dedicated_game})
     - export node_selector=$(kubectl get cm tgs-settings -o jsonpath={.data.node-selector_game})
-    - export autoscaling=$(kubectl get cm autoscaling-setting -o jsonpath={.data.$SettingKey})
+    - export autoscaling=$(kubectl get cm autoscaling-setting -o jsonpath={.data.$TgsSettingKey})
     - |
       cat << EOF | yq e -P | helm template artifacts/k8s/$HelmTemplateFolderName \
         -n $namespace \

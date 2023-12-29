@@ -2,17 +2,11 @@
 
 namespace Tgs.GameInterface.Jili.Core.ApplicationServices;
 
-internal class FundOrderCheckingGetService : IGetService<FundOrderCheckingQuery, bool>
+internal class FundOrderCheckingGetService(
+    IGameApiClient client) : IGetService<FundOrderCheckingQuery, bool>
 {
-    private readonly IGameApiClient _client;
-
-    public FundOrderCheckingGetService(IGameApiClient client)
-    {
-        _client = client ?? throw new ArgumentNullException(nameof(client));
-    }
-
     public async ValueTask<bool> GetAsync(FundOrderCheckingQuery command, CancellationToken cancellationToken = default)
-        => await _client.CheckTransferByTransactionIdAsync(
+        => await client.CheckTransferByTransactionIdAsync(
             apiUrl: command.ApiUrl,
             agentId: command.AgentId,
             agentKey: command.AgentKey,

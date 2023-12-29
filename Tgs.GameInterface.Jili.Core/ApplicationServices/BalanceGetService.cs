@@ -2,18 +2,11 @@
 
 namespace Tgs.GameInterface.Jili.Core.ApplicationServices;
 
-internal class BalanceGetService : IGetService<BalanceQuery, BalanceResult>
+internal class BalanceGetService(IGameApiClient client) : IGetService<BalanceQuery, BalanceResult>
 {
-    private readonly IGameApiClient _client;
-
-    public BalanceGetService(IGameApiClient client)
-    {
-        _client = client ?? throw new ArgumentNullException(nameof(client));
-    }
-
     public async ValueTask<BalanceResult> GetAsync(BalanceQuery query, CancellationToken cancellationToken = default)
     {
-        var result = await _client.GetMemberInfoAsync(
+        var result = await client.GetMemberInfoAsync(
             query.ApiUrl,
             query.AgentId,
             query.AgentKey,

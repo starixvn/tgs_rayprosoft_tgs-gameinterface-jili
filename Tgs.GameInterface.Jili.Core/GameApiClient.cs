@@ -12,7 +12,9 @@ using Tgs.GameInterface.Jili.Core.Models;
 
 namespace Tgs.GameInterface.Jili.Core;
 
-internal class GameApiClient : IGameApiClient
+internal class GameApiClient(
+    ILogger<GameApiClient> logger,
+    HttpClient client) : IGameApiClient
 {
     private static readonly JsonSerializerOptions? _SerializerOptions = new()
     {
@@ -22,17 +24,6 @@ internal class GameApiClient : IGameApiClient
             new JsonStringEnumConverter()
         }
     };
-
-    private readonly HttpClient _client;
-    private readonly ILogger<GameApiClient> _logger;
-
-    public GameApiClient(
-        ILogger<GameApiClient> logger,
-        HttpClient client)
-    {
-        _client = client ?? throw new ArgumentNullException(nameof(client));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
 
     public async ValueTask<bool> CheckTransferByTransactionIdAsync(Uri apiUrl, string agentId, string agentKey, string transactionId, CancellationToken cancellationToken = default)
     {
@@ -140,7 +131,7 @@ internal class GameApiClient : IGameApiClient
              retryAttempt => TimeSpan.FromSeconds(Random.Shared.Next(1, maxValue: 20)),
              (result, retryTime, context) =>
              {
-                 _logger.LogWarning("LogOn:{logOn}  Parameter:{parameters} Result:{result} Delay:{retryTime}",
+                 logger.LogWarning("LogOn:{logOn}  Parameter:{parameters} Result:{result} Delay:{retryTime}",
                      DateTime.Now.ToString("o"),
                      parameters,
                      result,
@@ -600,7 +591,7 @@ internal class GameApiClient : IGameApiClient
 
         var sw = Stopwatch.StartNew();
 
-        var httpResponseMessage = await _client.GetAsync(requestUri, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var httpResponseMessage = await client.GetAsync(requestUri, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         sw.Stop();
 
@@ -629,7 +620,7 @@ internal class GameApiClient : IGameApiClient
             ExecutionTimeMs = (int)sw.ElapsedMilliseconds,
             RecordedOn = DateTimeOffset.UtcNow
         };
-        _logger.LogInformation("{apiLogEvent}", JsonSerializer.Serialize(apiLogEvent));
+        logger.LogInformation("{apiLogEvent}", JsonSerializer.Serialize(apiLogEvent));
 
         _ = httpResponseMessage.EnsureSuccessStatusCode();
 
@@ -649,7 +640,7 @@ internal class GameApiClient : IGameApiClient
             CharSet = "UTF-8"
         };
 
-        var httpResponseMessage = await _client.PostAsync(url, content, cancellationToken);
+        var httpResponseMessage = await client.PostAsync(url, content, cancellationToken);
 
         sw.Stop();
 
@@ -677,7 +668,7 @@ internal class GameApiClient : IGameApiClient
             ExecutionTimeMs = (int)sw.ElapsedMilliseconds,
             RecordedOn = DateTimeOffset.UtcNow
         };
-        _logger.LogInformation("{apiLogEvent}", JsonSerializer.Serialize(apiLogEvent));
+        logger.LogInformation("{apiLogEvent}", JsonSerializer.Serialize(apiLogEvent));
 
         _ = httpResponseMessage.EnsureSuccessStatusCode();
 

@@ -2,18 +2,11 @@
 
 namespace Tgs.GameInterface.Jili.Core.ApplicationServices;
 
-internal class FundInGetService : IGetService<FundInQuery, FundInResult>
+internal class FundInGetService(IGameApiClient client) : IGetService<FundInQuery, FundInResult>
 {
-    private readonly IGameApiClient _client;
-
-    public FundInGetService(IGameApiClient client)
-    {
-        _client = client ?? throw new ArgumentNullException(nameof(client));
-    }
-
     public async ValueTask<FundInResult> GetAsync(FundInQuery query, CancellationToken cancellationToken = default)
     {
-        var result = await _client.ExchangeTransferByAgentIdAsync(
+        var result = await client.ExchangeTransferByAgentIdAsync(
             apiUrl: query.ApiUrl,
             agentId: query.AgentId,
             agentKey: query.AgentKey,

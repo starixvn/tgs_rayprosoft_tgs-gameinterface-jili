@@ -259,7 +259,7 @@ public class JiLiController : ControllerBase
             Page: model.Page,
             PageLimit: model.PageLimit)).ToArrayAsync().ConfigureAwait(false);
 
-        if (!result.Any())
+        if (result.Length == 0)
         {
             yield break;
         }

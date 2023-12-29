@@ -2,17 +2,11 @@
 
 namespace Tgs.GameInterface.Jili.Core.ApplicationServices;
 
-internal class GameDetailGetService : IGetService<GameDetailQuery, string>
+internal class GameDetailGetService(
+    IGameApiClient client) : IGetService<GameDetailQuery, string>
 {
-    private readonly IGameApiClient _client;
-
-    public GameDetailGetService(IGameApiClient client)
-    {
-        _client = client ?? throw new ArgumentNullException(nameof(client));
-    }
-
     public ValueTask<string> GetAsync(GameDetailQuery query, CancellationToken cancellationToken = default)
-        => _client
+        => client
         .GetGameDetailUrlAsync(
             apiUrl: query.ApiUrl,
             agentId: query.AgentId,

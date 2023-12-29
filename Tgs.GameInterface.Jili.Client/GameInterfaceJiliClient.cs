@@ -3,15 +3,9 @@ using Tgs.GameInterface.JiliService.Protos;
 
 namespace Tgs.GameInterface.Jili.Client;
 
-internal class GameInterfaceJiliClient : IGameInterfaceJiliClient
+internal class GameInterfaceJiliClient(
+    GameInterfaceJiliService.GameInterfaceJiliServiceClient client) : IGameInterfaceJiliClient
 {
-    private readonly GameInterfaceJiliService.GameInterfaceJiliServiceClient _client;
-
-    public GameInterfaceJiliClient(GameInterfaceJiliService.GameInterfaceJiliServiceClient client)
-    {
-        _client = client ?? throw new ArgumentNullException(nameof(client));
-    }
-
     public async ValueTask<string> CheckingServiceAsync(string machineName, CancellationToken cancellationToken = default)
     {
         var request = new CheckingServiceRequest
@@ -19,7 +13,7 @@ internal class GameInterfaceJiliClient : IGameInterfaceJiliClient
             MachineName = machineName,
         };
 
-        var reply = await _client
+        var reply = await client
             .CheckingServiceAsync(
                 request: request,
                 cancellationToken: cancellationToken)
@@ -29,7 +23,7 @@ internal class GameInterfaceJiliClient : IGameInterfaceJiliClient
     }
 
     public async ValueTask CreatePlayerAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, CancellationToken cancellationToken = default)
-        => await _client.CreatePlayerAsync(new CreatePlayerRequest()
+        => await client.CreatePlayerAsync(new CreatePlayerRequest()
         {
             ApiUrl = apiUrl.ToString(),
             AgentId = agentId,
@@ -38,7 +32,7 @@ internal class GameInterfaceJiliClient : IGameInterfaceJiliClient
         }, cancellationToken: cancellationToken).ConfigureAwait(false);
 
     public async ValueTask<FundReply> FundInAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, string transactionId, decimal amount, CancellationToken cancellationToken = default)
-        => await _client.FundInAsync(new FundRequest()
+        => await client.FundInAsync(new FundRequest()
         {
             ApiUrl = apiUrl.ToString(),
             AgentId = agentId,
@@ -50,7 +44,7 @@ internal class GameInterfaceJiliClient : IGameInterfaceJiliClient
 
     public async ValueTask<bool> FundOrderCheckingAsync(Uri apiUrl, string agentId, string agentKey, string transactionId, CancellationToken cancellationToken = default)
     {
-        var reply = await _client.FundOrderCheckingAsync(new FundOrderCheckingRequest()
+        var reply = await client.FundOrderCheckingAsync(new FundOrderCheckingRequest()
         {
             ApiUrl = apiUrl.ToString(),
             AgentId = agentId,
@@ -62,7 +56,7 @@ internal class GameInterfaceJiliClient : IGameInterfaceJiliClient
     }
 
     public async ValueTask<FundReply> FundOutAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, string transactionId, decimal amount, CancellationToken cancellationToken = default)
-        => await _client.FundOutAsync(new FundRequest()
+        => await client.FundOutAsync(new FundRequest()
         {
             ApiUrl = apiUrl.ToString(),
             AgentId = agentId,
@@ -73,7 +67,7 @@ internal class GameInterfaceJiliClient : IGameInterfaceJiliClient
         }, cancellationToken: cancellationToken).ConfigureAwait(false);
 
     public async ValueTask<BalanceReply> GetBalanceAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, CancellationToken cancellationToken = default)
-        => await _client.GetBalanceAsync(new BalanceRequest()
+        => await client.GetBalanceAsync(new BalanceRequest()
         {
             ApiUrl = apiUrl.ToString(),
             AgentId = agentId,
@@ -83,7 +77,7 @@ internal class GameInterfaceJiliClient : IGameInterfaceJiliClient
 
     public async ValueTask<string> GetGameDetailUrlAsync(Uri apiUrl, string agentId, string agentKey, string wagersId, string language, CancellationToken cancellationToken = default)
     {
-        var reply = await _client
+        var reply = await client
             .GetGameDetailUrlAsync(
                 request: new GameDetailRequest()
                 {
@@ -100,7 +94,7 @@ internal class GameInterfaceJiliClient : IGameInterfaceJiliClient
     }
 
     public async ValueTask<GamePullRecordReply> GetGamePullRecordAsync(Uri apiUrl, string agentId, string agentKey, DateTimeOffset startTime, DateTimeOffset endTime, int page = 1, int pageLimit = 10000, CancellationToken cancellationToken = default)
-        => await _client.GetGamePullRecordAsync(new GamePullRecordRequest()
+        => await client.GetGamePullRecordAsync(new GamePullRecordRequest()
         {
             ApiUrl = apiUrl.ToString(),
             AgentId = agentId,
@@ -112,7 +106,7 @@ internal class GameInterfaceJiliClient : IGameInterfaceJiliClient
         }, cancellationToken: cancellationToken).ConfigureAwait(false);
 
     public async ValueTask<GameUrlReply> GetGameUrlAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, string externalGameId, string language, CancellationToken cancellationToken = default)
-        => await _client.GetGameUrlAsync(new GameUrlRequest()
+        => await client.GetGameUrlAsync(new GameUrlRequest()
         {
             ApiUrl = apiUrl.ToString(),
             AgentId = agentId,
@@ -123,7 +117,7 @@ internal class GameInterfaceJiliClient : IGameInterfaceJiliClient
         }, cancellationToken: cancellationToken).ConfigureAwait(false);
 
     public async ValueTask KickPlayerAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, CancellationToken cancellationToken = default)
-        => await _client.KickPlayerAsync(new KickPlayerRequest()
+        => await client.KickPlayerAsync(new KickPlayerRequest()
         {
             ApiUrl = apiUrl.ToString(),
             AgentId = agentId,
