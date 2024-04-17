@@ -1,6 +1,6 @@
 ﻿namespace Tgs.GameInterface.Jili.Core.Models;
 
 public record GetBetRecordByTimeResult(
-    bool Success,
-    string? Message = null,
-    IEnumerable<GetBetRecordTransaction>? Transactions = null);
+	bool Success,
+	string? Message = null,
+	IEnumerable<GetBetRecordTransaction>? Transactions = null);

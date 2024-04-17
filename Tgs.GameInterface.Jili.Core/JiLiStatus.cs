@@ -2,6 +2,6 @@
 
 public enum JiLiStatus
 {
-    Win = 1,
-    Lose = 2
+	Win = 1,
+	Lose = 2
 }
