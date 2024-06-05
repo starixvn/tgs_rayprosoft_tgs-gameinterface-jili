@@ -2,9 +2,9 @@
 
 namespace Tgs.GameInterface.Jili.Core.ApplicationServices;
 
-internal class CreatePlayerCommandService(IGameApiClient client) : ICommandService<CreatePlayerCommand>
+internal class PlayerCreateCommandService(IGameApiClient client) : ICommandService<PlayerCreateCommand>
 {
-	public ValueTask ExecuteAsync(CreatePlayerCommand command, CancellationToken cancellationToken = default)
+	public ValueTask ExecuteAsync(PlayerCreateCommand command, CancellationToken cancellationToken = default)
 		=> client.CreateMemberAsync(
 			apiUrl: command.ApiUrl,
 			agentId: command.AgentId,

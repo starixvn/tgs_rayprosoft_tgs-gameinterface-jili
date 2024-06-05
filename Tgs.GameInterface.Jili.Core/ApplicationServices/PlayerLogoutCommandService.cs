@@ -2,10 +2,10 @@
 
 namespace Tgs.GameInterface.Jili.Core.ApplicationServices;
 
-internal class KickMemberCommandService(
-	IGameApiClient client) : ICommandService<KickMemberCommand>
+internal class PlayerLogoutCommandService(
+	IGameApiClient client) : ICommandService<PlayerLogoutCommand>
 {
-	public ValueTask ExecuteAsync(KickMemberCommand command, CancellationToken cancellationToken = default)
+	public ValueTask ExecuteAsync(PlayerLogoutCommand command, CancellationToken cancellationToken = default)
 		=> client.KickMemberAsync(
 			apiUrl: command.ApiUrl,
 			agentId: command.AgentId,

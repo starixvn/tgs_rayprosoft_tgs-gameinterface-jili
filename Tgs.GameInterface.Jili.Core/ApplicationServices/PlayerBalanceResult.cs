@@ -1,7 +1,6 @@
 ﻿namespace Tgs.GameInterface.Jili.Core.ApplicationServices;
 
-public record BalanceResult(
-	bool Success,
-	string? Message,
+public record PlayerBalanceResult(
 	bool IsPlayerExist,
-	decimal? Balance);
+	decimal Balance,
+	bool Online);

@@ -5,10 +5,9 @@ using RichardSzalay.MockHttp;
 
 namespace Tgs.GameInterface.Jili.Core.UnitTest;
 
-[TestClass]
 public class CheckTransferByTransactionIdUnitTest
 {
-	[TestMethod]
+	[Fact]
 	public async Task Normal_Process()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -42,9 +41,8 @@ public class CheckTransferByTransactionIdUnitTest
 			  apiUrl: apiUrl,
 			  agentId: agentId,
 			  agentKey: agentKey,
-			  transactionId: transactionId).ConfigureAwait(false);
+			  transactionId: transactionId);
 
-		Assert.IsNotNull(atual);
-		Assert.AreEqual(true, atual);
+		Assert.True(atual);
 	}
 }

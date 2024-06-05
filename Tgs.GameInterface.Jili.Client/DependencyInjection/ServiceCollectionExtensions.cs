@@ -3,13 +3,13 @@ using Grpc.Net.Client.Balancer;
 using Grpc.Net.Client.Configuration;
 using Microsoft.Extensions.Options;
 using Tgs.GameInterface.Jili.Client;
-using Tgs.GameInterface.JiliService.Protos;
+using Tgs.GameInterface.Jili.Protos;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {
-	public static IServiceCollection AddGameInterfaceJiliServiceClient(
+	public static IServiceCollection AddGameInterfaceJiliClient(
 		this IServiceCollection services,
 		Action<GameInterfaceJiliClientOptions, IServiceProvider> configure)
 	{
@@ -18,7 +18,7 @@ public static class ServiceCollectionExtensions
 			.AddOptions<GameInterfaceJiliClientOptions>()
 			.Configure(configure)
 			.Services
-			.AddGrpcClient<GameInterfaceJiliService.GameInterfaceJiliServiceClient>((sp, configureClient) =>
+			.AddGrpcClient<GameInterfaceJili.GameInterfaceJiliClient>((sp, configureClient) =>
 			{
 				var options = sp.GetRequiredService<IOptions<GameInterfaceJiliClientOptions>>().Value;
 				isDns = options.BaseUrl.Scheme.Equals("dns", StringComparison.OrdinalIgnoreCase);

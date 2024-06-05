@@ -6,10 +6,9 @@ using RichardSzalay.MockHttp;
 
 namespace Tgs.GameInterface.Jili.Core.UnitTest;
 
-[TestClass]
 public class LoginWithoutRedirectUnitTest
 {
-	[TestMethod]
+	[Fact]
 	public async Task Normal_Process()
 	{
 		var apiUrl = new Uri("https://uat-wb-api.jlfafafa2.com/");
@@ -43,14 +42,13 @@ public class LoginWithoutRedirectUnitTest
 			  agentKey: agentKey,
 			  playerCode: playerCode,
 			  gameId: gameId,
-			  lang: lang).ConfigureAwait(false);
+			  lang: lang);
 
-		Assert.IsNotNull(atual);
-		Assert.AreEqual(true, atual.Success);
-		Assert.AreEqual(true, atual.IsPlayerExist);
+		Assert.NotNull(atual);
+		Assert.True(atual.IsPlayerExist);
 	}
 
-	[TestMethod]
+	[Fact]
 	public async Task Player_Does_Not_Exist()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -84,10 +82,9 @@ public class LoginWithoutRedirectUnitTest
 			  agentKey: agentKey,
 			  playerCode: playerCode,
 			  gameId: gameId,
-			  lang: lang).ConfigureAwait(false);
+			  lang: lang);
 
-		Assert.IsNotNull(atual);
-		Assert.AreEqual(true, atual.Success);
-		Assert.AreEqual(false, atual.IsPlayerExist);
+		Assert.NotNull(atual);
+		Assert.False(atual.IsPlayerExist);
 	}
 }

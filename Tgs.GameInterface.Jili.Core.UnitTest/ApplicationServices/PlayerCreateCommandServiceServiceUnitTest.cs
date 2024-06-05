@@ -4,10 +4,9 @@ using Tgs.GameInterface.Jili.Core.ApplicationServices;
 
 namespace Tgs.GameInterface.Jili.Core.UnitTest.ApplicationServices;
 
-[TestClass]
-public class CreatePlayerCommandServiceUnitTest
+public class PlayerCreateCommandServiceServiceUnitTest
 {
-	[TestMethod]
+	[Fact]
 	public async Task Failed_To_Create_Member()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -15,7 +14,7 @@ public class CreatePlayerCommandServiceUnitTest
 		var agentKey = "testAgentKey";
 		var playerCode = "test";
 
-		var query = new CreatePlayerCommand(
+		var query = new PlayerCreateCommand(
 			ApiUrl: apiUrl,
 			AgentId: agentId,
 			AgentKey: agentKey,
@@ -29,12 +28,12 @@ public class CreatePlayerCommandServiceUnitTest
 			agentKey: Arg.Is(agentKey),
 			playerCode: Arg.Is(playerCode)).Throws<Exception>();
 
-		var service = new CreatePlayerCommandService(fakeClient);
+		var service = new PlayerCreateCommandService(fakeClient);
 
-		_ = await Assert.ThrowsExceptionAsync<Exception>(() => service.ExecuteAsync(query).AsTask()).ConfigureAwait(false);
+		_ = await Assert.ThrowsAsync<Exception>(() => service.ExecuteAsync(query).AsTask());
 	}
 
-	[TestMethod]
+	[Fact]
 	public async Task Normal_Process()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -42,7 +41,7 @@ public class CreatePlayerCommandServiceUnitTest
 		var agentKey = "testAgentKey";
 		var playerCode = "test";
 
-		var query = new CreatePlayerCommand(
+		var query = new PlayerCreateCommand(
 			ApiUrl: apiUrl,
 			AgentId: agentId,
 			AgentKey: agentKey,
@@ -56,8 +55,8 @@ public class CreatePlayerCommandServiceUnitTest
 			agentKey: Arg.Is(agentKey),
 			playerCode: Arg.Is(playerCode));
 
-		var service = new CreatePlayerCommandService(fakeClient);
+		var service = new PlayerCreateCommandService(fakeClient);
 
-		await service.ExecuteAsync(query).ConfigureAwait(false);
+		await service.ExecuteAsync(query);
 	}
 }

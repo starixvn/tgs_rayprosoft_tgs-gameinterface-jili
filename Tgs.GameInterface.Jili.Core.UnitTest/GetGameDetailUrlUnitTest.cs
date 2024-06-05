@@ -6,10 +6,9 @@ using RichardSzalay.MockHttp;
 
 namespace Tgs.GameInterface.Jili.Core.UnitTest;
 
-[TestClass]
 public class GetGameDetailUrlUnitTest
 {
-	[TestMethod]
+	[Fact]
 	public async Task Normal_Process()
 	{
 		var apiUrl = new Uri("https://uat-wb-api.jlfafafa2.com/");
@@ -45,10 +44,9 @@ public class GetGameDetailUrlUnitTest
 			  agentId: agentId,
 			  agentKey: agentKey,
 			  wagersId: wagersId,
-			  lang: lang)
-			.ConfigureAwait(false);
+			  lang: lang);
 
-		Assert.IsNotNull(atual);
-		Assert.AreEqual(response.Data.Url, atual);
+		Assert.NotNull(atual);
+		Assert.Equal(response.Data.Url, atual);
 	}
 }

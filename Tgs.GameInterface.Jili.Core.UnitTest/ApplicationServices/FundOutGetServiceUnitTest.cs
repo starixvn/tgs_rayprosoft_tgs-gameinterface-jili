@@ -1,13 +1,13 @@
-﻿using NSubstitute;
+﻿using System.Text.Json;
+using NSubstitute;
 using Tgs.GameInterface.Jili.Core.ApplicationServices;
 using Tgs.GameInterface.Jili.Core.Models;
 
 namespace Tgs.GameInterface.Jili.Core.UnitTest.ApplicationServices;
 
-[TestClass]
 public class FundOutGetServiceUnitTest
 {
-	[TestMethod]
+	[Fact]
 	public async Task Normal_Process()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -28,12 +28,20 @@ public class FundOutGetServiceUnitTest
 		var fakeClient = Substitute.For<IGameApiClient>();
 
 		var result = new ExchangeTransferByAgentIdResult(
-			Success: true,
 			TransactionId: transactionId,
 			CoinBefore: 0,
 			CoinAfter: 100,
+			CurrencyBefore: 100,
 			CurrencyAfter: 0,
-			CurrencyBefore: 100);
+			JsonSerializer.Serialize(new
+			{
+				TransactionId = transactionId,
+				CoinBefore = 0m,
+				CoinAfter = 10m,
+				CurrencyBefore = 10m,
+				CurrencyAfter = 10m,
+				Status = 1
+			}));
 		_ = fakeClient.ExchangeTransferByAgentIdAsync(
 			Arg.Is(apiUrl),
 			Arg.Is(agentId),
@@ -45,9 +53,8 @@ public class FundOutGetServiceUnitTest
 
 		var service = new FundOutGetService(fakeClient);
 
-		var actual = await service.GetAsync(query).ConfigureAwait(false);
+		var actual = await service.GetAsync(query);
 
-		Assert.IsTrue(actual.Success);
-		Assert.AreEqual(result.TransactionId, actual.TransactionId);
+		Assert.Equal(result.TransactionId, actual.TransactionId);
 	}
 }

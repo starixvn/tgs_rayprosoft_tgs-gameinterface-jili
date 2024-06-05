@@ -1,7 +1,7 @@
 ﻿namespace Tgs.GameInterface.Jili.Core.ApplicationServices;
 
-public record FundOrderCheckingQuery(
+public record PlayerOnlineQuery(
 	Uri ApiUrl,
 	string AgentId,
 	string AgentKey,
-	string TransactionId);
+	string PlayerCode);

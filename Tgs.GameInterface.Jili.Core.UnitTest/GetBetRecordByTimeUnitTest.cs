@@ -6,10 +6,9 @@ using RichardSzalay.MockHttp;
 
 namespace Tgs.GameInterface.Jili.Core.UnitTest;
 
-[TestClass]
 public class GetBetRecordByTimeUnitTest
 {
-	[TestMethod]
+	[Fact]
 	public async Task Normal_Process()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -68,16 +67,15 @@ public class GetBetRecordByTimeUnitTest
 			  agentKey: agentKey,
 			  startTime: startTime,
 			  endTime: endTime)
-			.ToArrayAsync()
-			.ConfigureAwait(false);
+			.ToArrayAsync();
 
-		Assert.IsNotNull(atual);
-		Assert.AreEqual(atual.Single().BetAmount, 1);
-		Assert.AreEqual(atual.Single().Turnover, 1);
-		Assert.AreEqual(atual.Single().AdditionalData, JsonSerializer.Serialize(response.Data.Result.Single()));
+		Assert.NotNull(atual);
+		Assert.Equal(1, atual.Single().BetAmount);
+		Assert.Equal(1, atual.Single().Turnover);
+		Assert.Equal(JsonSerializer.Serialize(response.Data.Result.Single()), atual.Single().AdditionalData);
 	}
 
-	[TestMethod]
+	[Fact]
 	public async Task Normal_Process_PG_PB2_PHP_32()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -106,13 +104,12 @@ public class GetBetRecordByTimeUnitTest
 			  endTime: endTime,
 			  gameId: 32,
 			  pageLimit: 20000)
-			.ToArrayAsync()
-			.ConfigureAwait(false);
+			.ToArrayAsync();
 
-		Assert.IsNotNull(atual);
+		Assert.NotNull(atual);
 	}
 
-	[TestMethod]
+	[Fact]
 	public async Task Normal_Process_PG_PB2_PHP_1()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -141,9 +138,8 @@ public class GetBetRecordByTimeUnitTest
 			  endTime: endTime,
 			  gameId: 1,
 			  pageLimit: 20000)
-			.ToArrayAsync()
-			.ConfigureAwait(false);
+			.ToArrayAsync();
 
-		Assert.IsNotNull(atual);
+		Assert.NotNull(atual);
 	}
 }

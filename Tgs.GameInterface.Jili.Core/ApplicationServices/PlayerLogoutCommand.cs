@@ -1,6 +1,6 @@
 ﻿namespace Tgs.GameInterface.Jili.Core.ApplicationServices;
 
-public record CreatePlayerCommand(
+public record PlayerLogoutCommand(
 	Uri ApiUrl,
 	string AgentId,
 	string AgentKey,

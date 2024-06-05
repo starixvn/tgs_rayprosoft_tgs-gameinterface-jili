@@ -3,22 +3,23 @@
 import "phoenix/protobuf/decimal.proto";
 import "google/protobuf/timestamp.proto";
 
-option csharp_namespace = "Tgs.GameInterface.JiliService.Protos";
+option csharp_namespace = "Tgs.GameInterface.Jili.Protos";
 
-package GameInterfaceJiliService;
+package GameInterfaceJili;
 
 // The greeting service definition.
-service GameInterfaceJiliService {
+service GameInterfaceJili {
   // Sends a greeting
-  rpc CreatePlayer (CreatePlayerRequest) returns (BaseReply);
+  rpc PlayerCreate (PlayerCreateRequest) returns (BaseReply);
+  rpc PlayerBalance (PlayerBalanceRequest) returns (PlayerBalanceReply);
+  rpc PlayerLogout (PlayerLogoutRequest) returns (BaseReply);
+  rpc PlayerOnline (PlayerOnlineRequest) returns (PlayerOnlineReply);
   rpc FundIn (FundRequest) returns (FundReply);
-  rpc FundOrderChecking(FundOrderCheckingRequest) returns (FundOrderCheckingReply);
   rpc FundOut (FundRequest) returns (FundReply);
-  rpc GetBalance (BalanceRequest) returns (BalanceReply);
-  rpc KickPlayer (KickPlayerRequest) returns (BaseReply);
-  rpc GetGameUrl (GameUrlRequest) returns (GameUrlReply);
-  rpc GetGamePullRecord (GamePullRecordRequest) returns (GamePullRecordReply);
-  rpc GetGameDetailUrl (GameDetailRequest) returns (GameDetailReply);
+  rpc FundStatus(FundStatusRequest) returns (BaseReply);
+  rpc GameUrl (GameUrlRequest) returns (GameUrlReply);
+  rpc GameRecord  (GameRecordRequest) returns (GameRecordReply);
+  rpc GameRecordDetail (GameRecordDetailRequest) returns (GameRecordDetailReply);
   rpc CheckingService(CheckingServiceRequest) returns (CheckingServiceReply);
 }
 
@@ -32,28 +33,35 @@ message FundRequest {
 	phoenix.protobuf.DecimalValue amount = 6;
 }
 
-message FundOrderCheckingRequest {
+message FundStatusRequest {
 	string api_url = 1;
 	string agent_id = 2;
 	string agent_key = 3;
 	string transaction_id = 4;
 }
 
-message BalanceRequest {
+message PlayerBalanceRequest {
 	string api_url = 1;
 	string agent_id = 2;
 	string agent_key = 3;
 	string player_code = 4;
 }
 
-message KickPlayerRequest {
+message PlayerLogoutRequest {
 	string api_url = 1;
 	string agent_id = 2;
 	string agent_key = 3;
 	string player_code = 4;
 }
 
-message CreatePlayerRequest {
+message PlayerOnlineRequest {
+	string api_url = 1;
+	string agent_id = 2;
+	string agent_key = 3;
+	string player_code = 4;
+}
+
+message PlayerCreateRequest {
 	string api_url = 1;
 	string agent_id = 2;
 	string agent_key = 3;
@@ -69,7 +77,7 @@ message GameUrlRequest {
 	string language = 6;
 }
 
-message GamePullRecordRequest {
+message GameRecordRequest {
 	string api_url = 1;
 	string agent_id = 2;
 	string agent_key = 3;
@@ -79,7 +87,7 @@ message GamePullRecordRequest {
 	int32 page_limit = 7;
 }
 
-message GameDetailRequest{
+message GameRecordDetailRequest{
 	string api_url = 1;
 	string agent_id = 2;
 	string agent_key = 3;
@@ -93,46 +101,43 @@ message CheckingServiceRequest{
 
 // The response message containing the greetings.
 message BaseReply {
-	bool success = 1;
+	bool state  = 1;
 }
 
 message FundReply {
-	bool success = 1;
-	string message = 2;
-	string transaction_id = 3;
-	phoenix.protobuf.DecimalValue coin_before = 4;
-	phoenix.protobuf.DecimalValue coin_after = 5;
-	phoenix.protobuf.DecimalValue currency_before = 6;
-	phoenix.protobuf.DecimalValue currency_after = 7;
+	string transaction_id = 1;
+	phoenix.protobuf.DecimalValue coin_before = 2;
+	phoenix.protobuf.DecimalValue coin_after = 3;
+	phoenix.protobuf.DecimalValue currency_before = 4;
+	phoenix.protobuf.DecimalValue currency_after = 5;
+	string resp = 6;
 }
 
-message FundOrderCheckingReply {
-	bool exist = 1;
+message PlayerBalanceReply {
+	bool is_player_exist = 1;
+	phoenix.protobuf.DecimalValue balance  = 2;
+	bool online = 3;
 }
 
-message BalanceReply {
-	bool success = 1;
-	string message = 2;
-	bool is_player_exist = 3;
-	phoenix.protobuf.DecimalValue balance = 4;
+message PlayerOnlineReply {
+	bool online  = 1;
 }
+
 
 message GameUrlReply {
-	bool success = 1;
-	string message = 2;
-	bool is_player_exist = 3;
-	string game_url = 4;
+	bool is_player_exist = 1;
+	string game_url = 2;
 }
 
-message GameDetailReply{
+message GameRecordDetailReply{
 	string url = 1;
 }
 
-message GamePullRecordReply {
-	repeated GamePullRecord items = 1;
+message GameRecordReply {
+	repeated GameRecordInfo items = 1;
 }
 
-message GamePullRecord {
+message GameRecordInfo {
 	string account = 1;
 	string wagers_id = 2;
     int32 game_id = 3;
@@ -140,7 +145,7 @@ message GamePullRecord {
 	phoenix.protobuf.DecimalValue bet_amount = 5;
 	google.protobuf.Timestamp payoff_time = 6;
 	phoenix.protobuf.DecimalValue payoff_amount = 7;
-	GamePullRecordStatus Status = 8;
+	GameRecordStatus Status = 8;
 	google.protobuf.Timestamp settlement_time = 9;
 	int32 game_category_id = 10;
 	int32 type = 11;
@@ -149,10 +154,10 @@ message GamePullRecord {
 	string additional_data = 14;
 }
 
-enum GamePullRecordStatus {
-  JILI_STATUS_UNKNOWN = 0;
-  JILI_STATUS_WIN = 1;
-  JILI_STATUS_LOSE = 2;
+enum GameRecordStatus {
+  GAME_RECORD_STATUS_UNKNOWN = 0;
+  GAME_RECORD_STATUS_WIN = 1;
+  GAME_RECORD_STATUS_LOSE = 2;
 }
 
 message CheckingServiceReply{

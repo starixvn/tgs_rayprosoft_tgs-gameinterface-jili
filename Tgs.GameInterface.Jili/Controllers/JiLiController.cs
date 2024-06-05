@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Tgs.GameInterface.Jili.Core.ApplicationServices;
+using Tgs.GameInterface.Jili.Protos;
 using Tgs.GameInterface.Jili.ViewModels;
-using Tgs.GameInterface.JiliService.Protos;
 using Tgs.ServiceUtility;
 
 namespace Tgs.GameInterface.Jili.Controllers;
@@ -10,33 +10,6 @@ namespace Tgs.GameInterface.Jili.Controllers;
 [Route("JiLi")]
 public class JiLiController : ControllerBase
 {
-	/// <summary>
-	/// Creates the player asynchronous.
-	/// </summary>
-	/// <param name="service">The service.</param>
-	/// <param name="model">The model.</param>
-	/// <returns></returns>
-	/// <remarks>
-	/// <b>Example</b><br />
-	///
-	///     Post
-	///         {
-	///             "apiUrl": "https://uat-wb-api.jlfafafa2.com/",
-	///             "agentId": "PG_GPI_CNY",
-	///             "agentKey": "82af5971ae233eaa003b774be4079e7902ea7ff4",
-	///             "playerCode": "4ucmqplxb029"
-	///         }
-	/// </remarks>
-	[HttpPost("create")]
-	public ValueTask CreatePlayerAsync(
-			[FromServices] ICommandService<CreatePlayerCommand> service,
-			CreatePlayerViewModel model)
-			=> service.ExecuteAsync(new CreatePlayerCommand(
-				ApiUrl: model.ApiUrl,
-				AgentId: model.AgentId,
-				AgentKey: model.AgentKey,
-				PlayerCode: model.PlayerCode));
-
 	/// <summary>
 	/// Funds the in asynchronous.
 	/// </summary>
@@ -56,7 +29,7 @@ public class JiLiController : ControllerBase
 	///             "amount": 100
 	///         }
 	/// </remarks>
-	[HttpPost("fund-in")]
+	[HttpPost("fund/in", Name = "FundIn")]
 	public async ValueTask<FundResultViewModel> FundInAsync(
 		[FromServices] IGetService<FundInQuery, FundInResult> service,
 		FundQueryViewModel model)
@@ -70,41 +43,13 @@ public class JiLiController : ControllerBase
 			Amount: model.Amount)).ConfigureAwait(false);
 
 		return new FundResultViewModel(
-			result.Success,
-			result.Message,
 			result.TransactionId,
 			result.CoinBefore,
 			result.CoinAfter,
 			result.CurrencyBefore,
-			result.CurrencyAfter);
+			result.CurrencyAfter,
+			result.Resp);
 	}
-
-	/// <summary>
-	/// Funds the order checking asynchronous.
-	/// </summary>
-	/// <param name="service">The service.</param>
-	/// <param name="model">The model.</param>
-	/// <returns></returns>
-	/// <remarks>
-	/// <b>Example</b><br />
-	///
-	///     Head
-	///         {
-	///             "apiUrl": "https://uat-wb-api.jlfafafa2.com/",
-	///             "agentId": "PG_GPI_CNY",
-	///             "agentKey": "82af5971ae233eaa003b774be4079e7902ea7ff4",
-	///             "transactionId": "8BF8BE2F096D33EBE7A3AF808E26692D"
-	///         }
-	/// </remarks>
-	[HttpPost("fundorderchecking")]
-	public ValueTask<bool> FundOrderCheckingAsync(
-		[FromServices] IGetService<FundOrderCheckingQuery, bool> service,
-		FundOrderCheckingViewModel model)
-			=> service.GetAsync(new FundOrderCheckingQuery(
-				ApiUrl: model.ApiUrl,
-				AgentId: model.AgentId,
-				AgentKey: model.AgentKey,
-				TransactionId: model.TransactionId));
 
 	/// <summary>
 	/// Funds the out asynchronous.
@@ -125,7 +70,7 @@ public class JiLiController : ControllerBase
 	///             "amount": 100
 	///         }
 	/// </remarks>
-	[HttpPost("fund-out")]
+	[HttpPost("fund/out", Name = "FundOut")]
 	public async ValueTask<FundResultViewModel> FundOutAsync(
 		[FromServices] IGetService<FundOutQuery, FundOutResult> service,
 		FundQueryViewModel model)
@@ -139,14 +84,40 @@ public class JiLiController : ControllerBase
 			Amount: model.Amount)).ConfigureAwait(false);
 
 		return new FundResultViewModel(
-			result.Success,
-			result.Message,
 			result.TransactionId,
 			result.CoinBefore,
 			result.CoinAfter,
 			result.CurrencyBefore,
-			result.CurrencyAfter);
+			result.CurrencyAfter,
+			result.Resp);
 	}
+
+	/// <summary>
+	/// Funds the order checking asynchronous.
+	/// </summary>
+	/// <param name="service">The service.</param>
+	/// <param name="model">The model.</param>
+	/// <returns></returns>
+	/// <remarks>
+	/// <b>Example</b><br />
+	///
+	///     Head
+	///         {
+	///             "apiUrl": "https://uat-wb-api.jlfafafa2.com/",
+	///             "agentId": "PG_GPI_CNY",
+	///             "agentKey": "82af5971ae233eaa003b774be4079e7902ea7ff4",
+	///             "transactionId": "8BF8BE2F096D33EBE7A3AF808E26692D"
+	///         }
+	/// </remarks>
+	[HttpPost("fund/Status", Name = "FundStatus")]
+	public ValueTask<bool> FundOrderCheckingAsync(
+		[FromServices] IGetService<FundStatusQuery, bool> service,
+		FundOrderCheckingViewModel model)
+			=> service.GetAsync(new FundStatusQuery(
+				ApiUrl: model.ApiUrl,
+				AgentId: model.AgentId,
+				AgentKey: model.AgentKey,
+				TransactionId: model.TransactionId));
 
 	/// <summary>
 	/// Games the URL asynchronous.
@@ -183,49 +154,12 @@ public class JiLiController : ControllerBase
 			)).ConfigureAwait(false);
 
 		return new GameUrlResultViewModel(
-			Success: result.Success,
-			Message: result.Message,
 			IsPlayerExist: result.IsPlayerExist,
 			GameUrl: result.GameUrl);
 	}
 
 	/// <summary>
-	/// Players the balance asynchronous.
-	/// </summary>
-	/// <param name="service">The service.</param>
-	/// <param name="model">The model.</param>
-	/// <returns></returns>
-	/// <remarks>
-	/// <b>Example</b><br />
-	///
-	///     Post
-	///         {
-	///             "apiUrl": "https://uat-wb-api.jlfafafa2.com/",
-	///             "agentId": "PG_GPI_CNY",
-	///             "agentKey": "82af5971ae233eaa003b774be4079e7902ea7ff4",
-	///             "playerCode": "4ucmqplxb029"
-	///         }
-	/// </remarks>
-	[HttpPost("balance")]
-	public async ValueTask<BalanceResultViewModel> GetBalanceAsync(
-		[FromServices] IGetService<BalanceQuery, BalanceResult> service,
-		BalanceQueryViewModel model)
-	{
-		var result = await service.GetAsync(new BalanceQuery(
-			ApiUrl: model.ApiUrl,
-			AgentId: model.AgentId,
-			AgentKey: model.AgentKey,
-			PlayerCode: model.PlayerCode)).ConfigureAwait(false);
-
-		return new BalanceResultViewModel(
-			result.Success,
-			result.Message,
-			result.IsPlayerExist,
-			result.Balance);
-	}
-
-	/// <summary>
-	/// Gets the game pull record asynchronous.
+	/// Games the record asynchronous.
 	/// </summary>
 	/// <param name="service">The service.</param>
 	/// <param name="model">The model.</param>
@@ -245,8 +179,8 @@ public class JiLiController : ControllerBase
 	///         }
 	///
 	/// </remarks>
-	[HttpPost("game/pullrecord")]
-	public async IAsyncEnumerable<GamePullRecordResultViewModel> GetGamePullRecordAsync(
+	[HttpPost("game/record")]
+	public async IAsyncEnumerable<GamePullRecordResultViewModel> GameRecordAsync(
 		[FromServices] IQueryService<GameRecordQuery, GameRecordResult> service,
 		GamePullRecordQueryViewModel model)
 	{
@@ -267,52 +201,25 @@ public class JiLiController : ControllerBase
 		foreach (var transaction in result)
 		{
 			yield return new GamePullRecordResultViewModel(
-						 Account: transaction.Account,
-						 WagersId: transaction.WagersId,
-						 GameId: transaction.GameId,
-						 WagersTime: transaction.WagersTime,
-						 BetAmount: transaction.BetAmount,
-						 PayoffTime: transaction.PayoffTime,
-						 PayoffAmount: transaction.PayoffAmount,
-						 Status: (GamePullRecordStatus)transaction.Status,
-						 SettlementTime: transaction.SettlementTime,
-						 GameCategoryId: transaction.GameCategoryId,
-						 Type: transaction.Type,
-						 AgentId: transaction.AgentId,
-						 Turnover: transaction.Turnover,
-						 AdditionalData: transaction.AdditionalData);
+				Account: transaction.Account,
+				WagersId: transaction.WagersId,
+				GameId: transaction.GameId,
+				WagersTime: transaction.WagersTime,
+				BetAmount: transaction.BetAmount,
+				PayoffTime: transaction.PayoffTime,
+				PayoffAmount: transaction.PayoffAmount,
+				Status: (GameRecordStatus)transaction.Status,
+				SettlementTime: transaction.SettlementTime,
+				GameCategoryId: transaction.GameCategoryId,
+				Type: transaction.Type,
+				AgentId: transaction.AgentId,
+				Turnover: transaction.Turnover,
+				AdditionalData: transaction.AdditionalData);
 		}
 	}
 
 	/// <summary>
-	/// Kicks the player asynchronous.
-	/// </summary>
-	/// <param name="service">The service.</param>
-	/// <param name="model">The model.</param>
-	/// <returns></returns>
-	/// <remarks>
-	/// <b>Example</b><br />
-	///
-	///     Post
-	///         {
-	///             "apiUrl": "https://uat-wb-api.jlfafafa2.com/",
-	///             "agentId": "PG_GPI_CNY",
-	///             "agentKey": "82af5971ae233eaa003b774be4079e7902ea7ff4",
-	///             "playerCode": "4ucmqplxb029"
-	///         }
-	/// </remarks>
-	[HttpPost("kick")]
-	public ValueTask KickPlayerAsync(
-		[FromServices] ICommandService<KickMemberCommand> service,
-		KickPlayerViewModel model)
-	=> service.ExecuteAsync(new KickMemberCommand(
-		ApiUrl: model.ApiUrl,
-		AgentId: model.AgentId,
-		AgentKey: model.AgentKey,
-		PlayerCode: model.PlayerCode));
-
-	/// <summary>
-	/// Gets the game detail URL asynchronous.
+	/// Games the record detail asynchronous.
 	/// </summary>
 	/// <param name="service">The service.</param>
 	/// <param name="model">The model.</param>
@@ -329,14 +236,125 @@ public class JiLiController : ControllerBase
 	///             "language": "zh-CN"
 	///         }
 	/// </remarks>
-	[HttpPost("GameDetail")]
-	public ValueTask<string> GetGameDetailUrlAsync(
-		[FromServices] IGetService<GameDetailQuery, string> service,
+	[HttpPost("game/record/detail")]
+	public ValueTask<string> GameRecordDetailAsync(
+		[FromServices] IGetService<GameRecordDetailQuery, string> service,
 		GameDetailQueryViewModel model)
-	=> service.GetAsync(new GameDetailQuery(
+	=> service.GetAsync(new GameRecordDetailQuery(
 		ApiUrl: model.ApiUrl,
 		AgentId: model.AgentId,
 		AgentKey: model.AgentKey,
 		WagersId: model.WagersId,
 		Language: model.Language));
+
+	/// <summary>
+	/// Players the balance asynchronous.
+	/// </summary>
+	/// <param name="service">The service.</param>
+	/// <param name="model">The model.</param>
+	/// <returns></returns>
+	/// <remarks>
+	/// <b>Example</b><br />
+	///
+	///     Post
+	///         {
+	///             "apiUrl": "https://uat-wb-api.jlfafafa2.com/",
+	///             "agentId": "PG_GPI_CNY",
+	///             "agentKey": "82af5971ae233eaa003b774be4079e7902ea7ff4",
+	///             "playerCode": "4ucmqplxb029"
+	///         }
+	/// </remarks>
+	[HttpPost("player/balance", Name = "PlayerBalance")]
+	public async ValueTask<BalanceResultViewModel> PlayerBalanceAsync(
+		[FromServices] IGetService<PlayerBalanceQuery, PlayerBalanceResult> service,
+		BalanceQueryViewModel model)
+	{
+		var result = await service.GetAsync(new PlayerBalanceQuery(
+			ApiUrl: model.ApiUrl,
+			AgentId: model.AgentId,
+			AgentKey: model.AgentKey,
+			PlayerCode: model.PlayerCode)).ConfigureAwait(false);
+
+		return new BalanceResultViewModel(
+			result.IsPlayerExist,
+			result.Balance,
+			result.Online);
+	}
+
+	/// <summary>
+	/// Players the create asynchronous.
+	/// </summary>
+	/// <param name="service">The service.</param>
+	/// <param name="model">The model.</param>
+	/// <returns></returns>
+	/// <remarks>
+	/// <b>Example</b><br />
+	///
+	///     Post
+	///         {
+	///             "apiUrl": "https://uat-wb-api.jlfafafa2.com/",
+	///             "agentId": "PG_GPI_CNY",
+	///             "agentKey": "82af5971ae233eaa003b774be4079e7902ea7ff4",
+	///             "playerCode": "4ucmqplxb029"
+	///         }
+	/// </remarks>
+	[HttpPost("player/create", Name = "PlayerCreate")]
+	public ValueTask PlayerCreateAsync(
+		[FromServices] ICommandService<PlayerCreateCommand> service,
+		CreatePlayerViewModel model)
+		=> service.ExecuteAsync(new PlayerCreateCommand(
+			ApiUrl: model.ApiUrl,
+			AgentId: model.AgentId,
+			AgentKey: model.AgentKey,
+			PlayerCode: model.PlayerCode));
+
+	/// <summary>
+	/// Players the logout asynchronous.
+	/// </summary>
+	/// <param name="service">The service.</param>
+	/// <param name="model">The model.</param>
+	/// <returns></returns>
+	/// <remarks>
+	/// <b>Example</b><br />
+	///
+	///     Post
+	///         {
+	///             "apiUrl": "https://uat-wb-api.jlfafafa2.com/",
+	///             "agentId": "PG_GPI_CNY",
+	///             "agentKey": "82af5971ae233eaa003b774be4079e7902ea7ff4",
+	///             "playerCode": "4ucmqplxb029"
+	///         }
+	/// </remarks>
+	[HttpPost("player/logout", Name = "PlayerLogout")]
+	public ValueTask PlayerLogoutAsync(
+		[FromServices] ICommandService<PlayerLogoutCommand> service,
+		KickPlayerViewModel model)
+		=> service.ExecuteAsync(new PlayerLogoutCommand(
+			ApiUrl: model.ApiUrl,
+			AgentId: model.AgentId,
+			AgentKey: model.AgentKey,
+			PlayerCode: model.PlayerCode));
+
+	/// <summary>
+	/// Players the online.
+	/// </summary>
+	/// <param name="service">The service.</param>
+	/// <param name="query">The query.</param>
+	/// <returns></returns>
+	/// <remarks>
+	/// <b>Example</b><br />
+	///
+	///     Post
+	///         {
+	///             "apiUrl": "https://uat-wb-api.jlfafafa2.com/",
+	///             "agentId": "PG_GPI_CNY",
+	///             "agentKey": "82af5971ae233eaa003b774be4079e7902ea7ff4",
+	///             "playerCode": "4ucmqplxb029"
+	///         }
+	/// </remarks>
+	[HttpPost("player/online", Name = "PlayerOnline")]
+	public ValueTask<bool> PlayerOnline(
+		[FromServices] IGetService<PlayerOnlineQuery, bool> service,
+		[FromBody] PlayerOnlineQuery query)
+		=> service.GetAsync(query);
 }

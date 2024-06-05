@@ -14,11 +14,10 @@ internal class GameUrlGetService(
 			playerCode: query.PlayerCode,
 			gameId: query.ExternalGameId,
 			lang: query.Language,
-			cancellationToken: cancellationToken).ConfigureAwait(false);
+			cancellationToken: cancellationToken)
+			.ConfigureAwait(false);
 
 		return new GameUrlResult(
-			Success: result.Success,
-			Message: result.Message,
 			IsPlayerExist: result.IsPlayerExist,
 			GameUrl: result.GameUrl);
 	}
