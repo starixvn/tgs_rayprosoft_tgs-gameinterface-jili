@@ -5,10 +5,9 @@ using RichardSzalay.MockHttp;
 
 namespace Tgs.GameInterface.Jili.Core.UnitTest;
 
-[TestClass]
 public class KickMemberUnitTest
 {
-	[TestMethod]
+	[Fact]
 	public async Task Normal_Process()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -38,6 +37,6 @@ public class KickMemberUnitTest
 			  apiUrl: apiUrl,
 			  agentId: agentId,
 			  agentKey: agentKey,
-			  playerCode: playerCode).ConfigureAwait(false);
+			  playerCode: playerCode);
 	}
 }

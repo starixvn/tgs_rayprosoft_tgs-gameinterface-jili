@@ -5,10 +5,9 @@ using RichardSzalay.MockHttp;
 
 namespace Tgs.GameInterface.Jili.Core.UnitTest;
 
-[TestClass]
 public class CreateMemberUnitTest
 {
-	[TestMethod]
+	[Fact]
 	public async Task Normal_Process()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -38,10 +37,10 @@ public class CreateMemberUnitTest
 			  apiUrl: apiUrl,
 			  agentId: agentId,
 			  agentKey: agentKey,
-			  playerCode: playerCode).ConfigureAwait(false);
+			  playerCode: playerCode);
 	}
 
-	[TestMethod]
+	[Fact]
 	public async Task Player_Already_Exists()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -71,6 +70,6 @@ public class CreateMemberUnitTest
 			  apiUrl: apiUrl,
 			  agentId: agentId,
 			  agentKey: agentKey,
-			  playerCode: playerCode).ConfigureAwait(false);
+			  playerCode: playerCode);
 	}
 }

@@ -1,7 +1,6 @@
 ﻿namespace Tgs.GameInterface.Jili.Core.Models;
 
 public record GetMemberInfoResult(
-	bool Success,
-	string? Message = null,
-	bool IsPlayerExist = false,
-	decimal? Balance = null);
+	bool IsPlayerExist,
+	decimal Balance,
+	bool Online);

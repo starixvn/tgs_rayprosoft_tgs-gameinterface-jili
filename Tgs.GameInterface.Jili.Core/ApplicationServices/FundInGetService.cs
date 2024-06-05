@@ -17,12 +17,11 @@ internal class FundInGetService(IGameApiClient client) : IGetService<FundInQuery
 			cancellationToken: cancellationToken).ConfigureAwait(false);
 
 		return new FundInResult(
-			Success: result.Success,
-			Message: result.Message,
 			TransactionId: result.TransactionId,
 			CoinBefore: result.CoinBefore,
 			CoinAfter: result.CoinAfter,
 			CurrencyBefore: result.CurrencyBefore,
-			CurrencyAfter: result.CurrencyAfter);
+			CurrencyAfter: result.CurrencyAfter,
+			Resp: result.Resp);
 	}
 }

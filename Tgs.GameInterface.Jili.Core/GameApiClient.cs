@@ -85,7 +85,7 @@ internal class GameApiClient(
 				apiUrl: apiUrl,
 				path: "/api1/CreateMember",
 				parameters: parameters,
-				logPrefix: "CreateMember",
+				logPrefix: nameof(CreateMemberAsync),
 				cancellationToken: cancellationToken).ConfigureAwait(false)
 				?? throw new Exception("Document is empty.");
 
@@ -141,7 +141,7 @@ internal class GameApiClient(
 					apiUrl: apiUrl,
 					path: "/api1/ExchangeTransferByAgentId",
 					parameters: parameters,
-					logPrefix: "ExchangeTransferByAgentId",
+					logPrefix: nameof(ExchangeTransferByAgentIdAsync),
 					cancellationToken: cancellationToken)
 				.ConfigureAwait(false))
 			.ConfigureAwait(false)
@@ -156,9 +156,7 @@ internal class GameApiClient(
 
 		if (errorCode is not "0")
 		{
-			return new ExchangeTransferByAgentIdResult(
-				Success: false,
-				Message: document.RootElement.GetProperty("Message").ToString());
+			throw new Exception(document.RootElement.GetProperty("Message").ToString());
 		}
 
 		var data = document.RootElement.GetProperty("Data");
@@ -189,23 +187,15 @@ internal class GameApiClient(
 		}
 
 		return new ExchangeTransferByAgentIdResult(
-			Success: success,
 			TransactionId: jsonGameProductTransactionId.ToString(),
 			CoinBefore: coinBefore,
 			CoinAfter: coinAfter,
 			CurrencyBefore: currencyBefore,
-			CurrencyAfter: CurrencyAfter);
+			CurrencyAfter: CurrencyAfter,
+			Resp: data.ToString());
 	}
 
-	public async IAsyncEnumerable<GetBetRecordTransaction> GetBetRecordByTimeAsync(
-		Uri apiUrl,
-		string agentId,
-		string agentKey,
-		DateTime startTime,
-		DateTime endTime,
-		int page = 1,
-		int pageLimit = 100,
-		[EnumeratorCancellation] CancellationToken cancellationToken = default)
+	public async IAsyncEnumerable<GetBetRecordTransaction> GetBetRecordByTimeAsync(Uri apiUrl, string agentId, string agentKey, DateTime startTime, DateTime endTime, int page = 1, int pageLimit = 100, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 	{
 		var _timeZone = TimeZoneInfo.CreateCustomTimeZone(id: "eastern time", baseUtcOffset: TimeSpan.FromHours(-4), "eastern time", "eastern time");
 
@@ -229,7 +219,7 @@ internal class GameApiClient(
 				apiUrl: apiUrl,
 				path: "/api1/GetBetRecordByTime",
 				parameters: parameters,
-				logPrefix: "GetBetRecordByTime",
+				logPrefix: nameof(GetBetRecordByTimeAsync),
 				cancellationToken: cancellationToken)
 			.ConfigureAwait(false)
 			?? throw new Exception("Document is empty.");
@@ -300,7 +290,7 @@ internal class GameApiClient(
 				apiUrl: apiUrl,
 				path: "/api1/GetMemberInfo",
 				parameters: parameters,
-				logPrefix: "GetMemberInfo",
+				logPrefix: nameof(GetMemberInfoAsync),
 				cancellationToken: cancellationToken)
 			.ConfigureAwait(false)
 			?? throw new Exception("Document is empty.");
@@ -314,9 +304,7 @@ internal class GameApiClient(
 
 		if (errorCode is not "0")
 		{
-			return new GetMemberInfoResult(
-				Success: false,
-				Message: document.RootElement.GetProperty("Message").ToString());
+			throw new Exception(document.RootElement.GetProperty("Message").ToString());
 		}
 
 		var datas = document.RootElement.GetProperty(propertyName: "Data");
@@ -328,9 +316,9 @@ internal class GameApiClient(
 		var balance = memberInfo.GetProperty("Balance").GetDecimal();
 
 		return new GetMemberInfoResult(
-			Success: true,
 			IsPlayerExist: status is not 3,
-			Balance: balance);
+			Balance: balance,
+			Online: status is 1);
 	}
 
 	public async ValueTask KickMemberAsync(Uri apiUrl, string agentId, string agentKey, string playerCode, CancellationToken cancellationToken = default)
@@ -370,7 +358,7 @@ internal class GameApiClient(
 				apiUrl: apiUrl,
 				path: "/api1/LoginWithoutRedirect",
 				parameters: parameters,
-				logPrefix: "LoginWithoutRedirect",
+				logPrefix: nameof(LoginWithoutRedirectAsync),
 				cancellationToken: cancellationToken)
 			.ConfigureAwait(false)
 			?? throw new Exception("Document is empty.");
@@ -383,26 +371,14 @@ internal class GameApiClient(
 		var errorCode = jsonErrorCode.ToString();
 
 		return errorCode is not "0" and not "14"
-			? new LoginWithoutRedirectResult(
-				Success: false,
-				Message: document.RootElement.GetProperty("Message").ToString())
+			? throw new Exception(document.RootElement.GetProperty("Message").ToString())
 			: new LoginWithoutRedirectResult(
-			Success: true,
-			IsPlayerExist: errorCode.ToString() is not "14",
-			GameUrl: document.RootElement.GetProperty("Data").ToString()
+				IsPlayerExist: errorCode.ToString() is not "14",
+				GameUrl: document.RootElement.GetProperty("Data").ToString()
 			);
 	}
 
-	public async IAsyncEnumerable<GetBetRecordTransaction> GetBetRecordByTimeAsync(
-		Uri apiUrl,
-		string agentId,
-		string agentKey,
-		int gameId,
-		DateTime startTime,
-		DateTime endTime,
-		int page = 1,
-		int pageLimit = 100,
-		[EnumeratorCancellation] CancellationToken cancellationToken = default)
+	public async IAsyncEnumerable<GetBetRecordTransaction> GetBetRecordByTimeAsync(Uri apiUrl, string agentId, string agentKey, int gameId, DateTime startTime, DateTime endTime, int page = 1, int pageLimit = 100, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 	{
 		var _timeZone = TimeZoneInfo.CreateCustomTimeZone(id: "eastern time", baseUtcOffset: TimeSpan.FromHours(-4), "eastern time", "eastern time");
 
@@ -436,7 +412,7 @@ internal class GameApiClient(
 				apiUrl: apiUrl,
 				path: "/api1/GetBetRecordByTime",
 				parameters: parameters,
-				logPrefix: "GetBetRecordByTime",
+				logPrefix: nameof(GetBetRecordByTimeAsync),
 				cancellationToken: cancellationToken)
 			.ConfigureAwait(false)
 			?? throw new Exception("Document is empty.");
@@ -491,13 +467,7 @@ internal class GameApiClient(
 		}
 	}
 
-	public async ValueTask<string> GetGameDetailUrlAsync(
-		Uri apiUrl,
-		string agentId,
-		string agentKey,
-		string wagersId,
-		string lang,
-		CancellationToken cancellationToken = default)
+	public async ValueTask<string> GetGameDetailUrlAsync(Uri apiUrl, string agentId, string agentKey, string wagersId, string lang, CancellationToken cancellationToken = default)
 	{
 		var parameters = new Dictionary<string, string>
 		{
@@ -520,7 +490,7 @@ internal class GameApiClient(
 				apiUrl: apiUrl,
 				path: "/api1/GetGameDetailUrl",
 				parameters: parameters,
-				logPrefix: "GetGameDetailUrl",
+				logPrefix: nameof(GetGameDetailUrlAsync),
 				cancellationToken: cancellationToken)
 			.ConfigureAwait(false)
 			?? throw new Exception("Document is empty.");
@@ -576,9 +546,6 @@ internal class GameApiClient(
 
 	private async ValueTask<JsonDocument?> GetAsync(Uri apiUrl, string path, IEnumerable<KeyValuePair<string, string>> parameters, string logPrefix, CancellationToken cancellationToken = default)
 	{
-		logPrefix = $"{nameof(GameApiClient)}.{logPrefix}".ToLower();
-
-		var url = new Uri(apiUrl, path);
 		var uriBuilder = new UriBuilder(new Uri(apiUrl, path));
 		var query = HttpUtility.ParseQueryString(uriBuilder.Query);
 		foreach (var parameter in parameters)
@@ -606,7 +573,7 @@ internal class GameApiClient(
 				.ConfigureAwait(false);
 		}
 
-		var apiLogEvent = new GameApiLogEvent
+		var apiLogEvent = new
 		{
 			Path = httpResponseMessage.RequestMessage?.RequestUri?.AbsoluteUri.NoLongerThan(512) ?? string.Empty,
 			Method = httpResponseMessage.RequestMessage?.Method.ToString().NoLongerThan(8) ?? string.Empty,
@@ -629,8 +596,6 @@ internal class GameApiClient(
 
 	private async ValueTask<JsonDocument?> PostAsync(Uri apiUrl, string path, IEnumerable<KeyValuePair<string, string>> parameters, string logPrefix, CancellationToken cancellationToken = default)
 	{
-		logPrefix = $"{nameof(GameApiClient)}.{logPrefix}".ToLower();
-
 		var sw = Stopwatch.StartNew();
 		var url = new Uri(apiUrl, path);
 
@@ -654,7 +619,7 @@ internal class GameApiClient(
 				.ConfigureAwait(false) ?? string.Empty;
 		}
 
-		var apiLogEvent = new GameApiLogEvent
+		var apiLogEvent = new
 		{
 			Path = httpResponseMessage.RequestMessage?.RequestUri?.AbsoluteUri.NoLongerThan(512) ?? string.Empty,
 			Method = httpResponseMessage.RequestMessage?.Method.ToString().NoLongerThan(8) ?? string.Empty,

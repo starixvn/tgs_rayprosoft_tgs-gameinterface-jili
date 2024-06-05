@@ -1,13 +1,13 @@
-﻿using NSubstitute;
+﻿using System.Text.Json;
+using NSubstitute;
 using Tgs.GameInterface.Jili.Core.ApplicationServices;
 using Tgs.GameInterface.Jili.Core.Models;
 
 namespace Tgs.GameInterface.Jili.Core.UnitTest.ApplicationServices;
 
-[TestClass]
 public class FundInGetServiceUnitTest
 {
-	[TestMethod]
+	[Fact]
 	public async Task Normal_Process()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -28,12 +28,20 @@ public class FundInGetServiceUnitTest
 		var fakeClient = Substitute.For<IGameApiClient>();
 
 		var result = new ExchangeTransferByAgentIdResult(
-			Success: true,
 			TransactionId: transactionId,
-			CoinBefore: 100,
-			CoinAfter: 0,
-			CurrencyAfter: 100,
-			CurrencyBefore: 0);
+			CoinBefore: 100.0m,
+			CoinAfter: 0.0m,
+			CurrencyAfter: 100.0m,
+			CurrencyBefore: 0.0m,
+			Resp: JsonSerializer.Serialize(new
+			{
+				TransactionId = transactionId,
+				CoinBefore = 100.0m,
+				CoinAfter = 0m,
+				CurrencyBefore = 100.0m,
+				CurrencyAfter = 0.0m,
+				Status = 1
+			}));
 		_ = fakeClient.ExchangeTransferByAgentIdAsync(
 			Arg.Is(apiUrl),
 			Arg.Is(agentId),
@@ -45,9 +53,8 @@ public class FundInGetServiceUnitTest
 
 		var service = new FundInGetService(fakeClient);
 
-		var actual = await service.GetAsync(query).ConfigureAwait(false);
+		var actual = await service.GetAsync(query);
 
-		Assert.IsTrue(actual.Success);
-		Assert.AreEqual(result.TransactionId, actual.TransactionId);
+		Assert.Equal(result.TransactionId, actual.TransactionId);
 	}
 }

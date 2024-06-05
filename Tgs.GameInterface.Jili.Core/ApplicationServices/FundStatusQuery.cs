@@ -1,7 +1,7 @@
 ﻿namespace Tgs.GameInterface.Jili.Core.ApplicationServices;
 
-public record BalanceQuery(
+public record FundStatusQuery(
 	Uri ApiUrl,
 	string AgentId,
 	string AgentKey,
-	string PlayerCode);
+	string TransactionId);

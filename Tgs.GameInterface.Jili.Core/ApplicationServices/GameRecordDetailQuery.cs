@@ -1,6 +1,6 @@
 ﻿namespace Tgs.GameInterface.Jili.Core.ApplicationServices;
 
-public record GameDetailQuery(
+public record GameRecordDetailQuery(
 	Uri ApiUrl,
 	string AgentId,
 	string AgentKey,

@@ -4,10 +4,9 @@ using Tgs.GameInterface.Jili.Core.Models;
 
 namespace Tgs.GameInterface.Jili.Core.UnitTest.ApplicationServices;
 
-[TestClass]
-public class BalanceGetServiceUnitTest
+public class PlayerBalanceGetServiceUnitTest
 {
-	[TestMethod]
+	[Fact]
 	public async Task Account_Is_Not_Exists()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -15,7 +14,7 @@ public class BalanceGetServiceUnitTest
 		var agentKey = "testAgentKey";
 		var playerCode = "test";
 
-		var query = new BalanceQuery(
+		var query = new PlayerBalanceQuery(
 			ApiUrl: apiUrl,
 			AgentId: agentId,
 			AgentKey: agentKey,
@@ -24,25 +23,25 @@ public class BalanceGetServiceUnitTest
 		var fakeClient = Substitute.For<IGameApiClient>();
 
 		var result = new GetMemberInfoResult(
-			Success: true,
 			IsPlayerExist: false,
-			Balance: null);
+			Balance: 0.0m,
+			Online: false);
 		_ = fakeClient.GetMemberInfoAsync(
 			Arg.Is(apiUrl),
 			Arg.Is(agentId),
 			Arg.Is(agentKey),
 			Arg.Is(playerCode)).Returns(ValueTask.FromResult(result));
 
-		var service = new BalanceGetService(fakeClient);
+		var service = new PlayerBalanceGetService(fakeClient);
 
-		var actual = await service.GetAsync(query).ConfigureAwait(false);
+		var actual = await service.GetAsync(query);
 
-		Assert.IsTrue(actual.Success);
-		Assert.IsFalse(actual.IsPlayerExist);
-		Assert.IsNull(actual.Balance);
+		Assert.False(actual.IsPlayerExist);
+		Assert.Equal(0.0m, actual.Balance);
+		Assert.False(actual.Online);
 	}
 
-	[TestMethod]
+	[Fact]
 	public async Task Normal_Process()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -50,7 +49,7 @@ public class BalanceGetServiceUnitTest
 		var agentKey = "testAgentKey";
 		var playerCode = "test";
 
-		var query = new BalanceQuery(
+		var query = new PlayerBalanceQuery(
 			ApiUrl: apiUrl,
 			AgentId: agentId,
 			AgentKey: agentKey,
@@ -59,21 +58,21 @@ public class BalanceGetServiceUnitTest
 		var fakeClient = Substitute.For<IGameApiClient>();
 
 		var result = new GetMemberInfoResult(
-			Success: true,
 			IsPlayerExist: true,
-			Balance: 100m);
+			Balance: 100.0m,
+			Online: true);
 		_ = fakeClient.GetMemberInfoAsync(
 			Arg.Is(apiUrl),
 			Arg.Is(agentId),
 			Arg.Is(agentKey),
 			Arg.Is(playerCode)).Returns(ValueTask.FromResult(result));
 
-		var service = new BalanceGetService(fakeClient);
+		var service = new PlayerBalanceGetService(fakeClient);
 
-		var actual = await service.GetAsync(query).ConfigureAwait(false);
+		var actual = await service.GetAsync(query);
 
-		Assert.IsTrue(actual.Success);
-		Assert.IsTrue(actual.IsPlayerExist);
-		Assert.AreEqual(result.Balance, actual.Balance);
+		Assert.True(actual.IsPlayerExist);
+		Assert.Equal(100.0m, actual.Balance);
+		Assert.True(actual.Online);
 	}
 }

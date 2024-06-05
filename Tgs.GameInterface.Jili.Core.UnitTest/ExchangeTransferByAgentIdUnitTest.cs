@@ -5,10 +5,9 @@ using RichardSzalay.MockHttp;
 
 namespace Tgs.GameInterface.Jili.Core.UnitTest;
 
-[TestClass]
 public class ExchangeTransferByAgentIdUnitTest
 {
-	[TestMethod]
+	[Fact]
 	public async Task Normal_Process_FundIn()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -52,14 +51,14 @@ public class ExchangeTransferByAgentIdUnitTest
 			  playerCode: playerCode,
 			  transactionId: transactionId,
 			  transferType: transferType,
-			  amount: amount).ConfigureAwait(false);
+			  amount: amount);
 
-		Assert.IsNotNull(atual);
-		Assert.AreEqual(true, atual.Success);
-		Assert.AreEqual(transactionId, atual.TransactionId);
+		Assert.NotNull(atual);
+		Assert.Equal(transactionId, atual.TransactionId);
+		Assert.Equal(JsonSerializer.Serialize(response.Data), atual.Resp);
 	}
 
-	[TestMethod]
+	[Fact]
 	public async Task Normal_Process_FundOut()
 	{
 		var apiUrl = new Uri("http://localhost/");
@@ -103,10 +102,10 @@ public class ExchangeTransferByAgentIdUnitTest
 			  playerCode: playerCode,
 			  transactionId: transactionId,
 			  transferType: transferType,
-			  amount: amount).ConfigureAwait(false);
+			  amount: amount);
 
-		Assert.IsNotNull(atual);
-		Assert.AreEqual(true, atual.Success);
-		Assert.AreEqual(transactionId, atual.TransactionId);
+		Assert.NotNull(atual);
+		Assert.Equal(transactionId, atual.TransactionId);
+		Assert.Equal(JsonSerializer.Serialize(response.Data), atual.Resp);
 	}
 }

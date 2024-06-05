@@ -18,12 +18,11 @@ internal class FundOutGetService(
 			cancellationToken: cancellationToken).ConfigureAwait(false);
 
 		return new FundOutResult(
-			Success: result.Success,
-			Message: result.Message,
 			TransactionId: result.TransactionId,
 			CoinBefore: result.CoinBefore,
 			CoinAfter: result.CoinAfter,
 			CurrencyBefore: result.CurrencyBefore,
-			CurrencyAfter: result.CurrencyAfter);
+			CurrencyAfter: result.CurrencyAfter,
+			Resp: result.Resp);
 	}
 }

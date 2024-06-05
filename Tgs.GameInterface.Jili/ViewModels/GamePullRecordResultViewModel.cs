@@ -1,4 +1,4 @@
-﻿using Tgs.GameInterface.JiliService.Protos;
+﻿using Tgs.GameInterface.Jili.Protos;
 
 namespace Tgs.GameInterface.Jili.ViewModels;
 
@@ -10,7 +10,7 @@ public record GamePullRecordResultViewModel(
 	decimal BetAmount,
 	DateTimeOffset PayoffTime,
 	decimal PayoffAmount,
-	GamePullRecordStatus Status,
+	GameRecordStatus Status,
 	DateTimeOffset SettlementTime,
 	int GameCategoryId,
 	int Type,

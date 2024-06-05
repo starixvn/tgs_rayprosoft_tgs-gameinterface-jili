@@ -1,6 +1,6 @@
-# tgs-gameinterface-jiliservice
+# tgs-gameinterface-jili
 
-Tgs GameInterface JiliService
+Tgs GameInterface Jili
 
 ## Getting started
 
@@ -15,14 +15,14 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 
 ```
 cd existing_repo
-git remote add origin https://gitlab.com/rayprosoft/tgs-gameinterface-jiliservice.git
+git remote add origin https://gitlab.com/rayprosoft/tgs-gameinterface-jili.git
 git branch -M main
 git push -uf origin main
 ```
 
 ## Integrate with your tools
 
-- [ ] [Set up project integrations](https://gitlab.com/rayprosoft/tgs-gameinterface-jiliservice/-/settings/integrations)
+- [ ] [Set up project integrations](https://gitlab.com/rayprosoft/tgs-gameinterface-jili/-/settings/integrations)
 
 ## Collaborate with your team
 

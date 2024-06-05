@@ -1,23 +1,23 @@
-﻿using System.Transactions;
-using Google.Protobuf.WellKnownTypes;
+﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Tgs.GameInterface.Jili.Core.ApplicationServices;
-using Tgs.GameInterface.JiliService.Protos;
+using Tgs.GameInterface.Jili.Protos;
 using Tgs.ServiceUtility;
 
 namespace Tgs.GameInterface.Jili.GrpcServices;
 
 public class GameInterfaceJiliGrpcService(
 	ILogger<GameInterfaceJiliGrpcService> logger,
-	 IGetService<BalanceQuery, BalanceResult> balanceService,
-	 ICommandService<CreatePlayerCommand> createPlayerService,
-	 IGetService<FundInQuery, FundInResult> fundInService,
-	 IGetService<FundOrderCheckingQuery, bool> fundOrderCheckingService,
-	 IGetService<FundOutQuery, FundOutResult> fundOutService,
-	 IQueryService<GameRecordQuery, GameRecordResult> gameRecordService,
-	 IGetService<GameUrlQuery, GameUrlResult> gameUrlService,
-	 ICommandService<KickMemberCommand> kickMemberService,
-	 IGetService<GameDetailQuery, string> gameDetailService) : GameInterfaceJiliService.GameInterfaceJiliServiceBase
+	IGetService<PlayerBalanceQuery, PlayerBalanceResult> playerBalanceService,
+	ICommandService<PlayerCreateCommand> playerCreateService,
+	IGetService<FundInQuery, FundInResult> fundInService,
+	IGetService<FundStatusQuery, bool> fundStatusService,
+	IGetService<FundOutQuery, FundOutResult> fundOutService,
+	IQueryService<GameRecordQuery, GameRecordResult> gameRecordService,
+	IGetService<GameUrlQuery, GameUrlResult> gameUrlService,
+	ICommandService<PlayerLogoutCommand> playerLogoutService,
+	IGetService<GameRecordDetailQuery, string> gameDetailService,
+	IGetService<PlayerOnlineQuery, bool> playerOnlineService) : GameInterfaceJili.GameInterfaceJiliBase
 {
 	public override Task<CheckingServiceReply> CheckingService(CheckingServiceRequest request, ServerCallContext context)
 	{
@@ -29,134 +29,147 @@ public class GameInterfaceJiliGrpcService(
 		});
 	}
 
-	public override async Task<BaseReply> CreatePlayer(CreatePlayerRequest request, ServerCallContext context)
+	public override async Task<BaseReply> PlayerCreate(PlayerCreateRequest request, ServerCallContext context)
 	{
-		await createPlayerService.ExecuteAsync(new CreatePlayerCommand(
-			ApiUrl: new(request.ApiUrl),
-			AgentId: request.AgentId,
-			AgentKey: request.AgentKey,
-			PlayerCode: request.PlayerCode)).ConfigureAwait(false);
+		await playerCreateService.ExecuteAsync(
+			command: new PlayerCreateCommand(
+				ApiUrl: new(request.ApiUrl),
+				AgentId: request.AgentId,
+				AgentKey: request.AgentKey,
+				PlayerCode: request.PlayerCode),
+			cancellationToken: context.CancellationToken)
+			.ConfigureAwait(false);
 
 		return new BaseReply()
 		{
-			Success = true
+			State = true
 		};
 	}
 
 	public override async Task<FundReply> FundIn(FundRequest request, ServerCallContext context)
 	{
-		var result = await fundInService.GetAsync(new FundInQuery(
-			 ApiUrl: new(request.ApiUrl),
-			 AgentId: request.AgentId,
-			 AgentKey: request.AgentKey,
-			 PlayerCode: request.PlayerCode,
-			 TransactionId: request.TransactionId,
-			 Amount: request.Amount)).ConfigureAwait(false);
+		var result = await fundInService.GetAsync(
+			query: new FundInQuery(
+				ApiUrl: new(request.ApiUrl),
+				AgentId: request.AgentId,
+				AgentKey: request.AgentKey,
+				PlayerCode: request.PlayerCode,
+				TransactionId: request.TransactionId,
+				Amount: request.Amount),
+			cancellationToken: context.CancellationToken)
+			.ConfigureAwait(false);
 
 		return new FundReply()
 		{
-			Success = result.Success,
-			Message = result.Message ?? String.Empty,
 			TransactionId = result.TransactionId,
 			CoinBefore = result.CoinBefore,
 			CoinAfter = result.CoinAfter,
 			CurrencyBefore = result.CurrencyBefore,
-			CurrencyAfter = result.CurrencyAfter
+			CurrencyAfter = result.CurrencyAfter,
+			Resp = result.Resp
 		};
 	}
 
-	public override async Task<FundOrderCheckingReply> FundOrderChecking(FundOrderCheckingRequest request, ServerCallContext context)
+	public override async Task<BaseReply> FundStatus(FundStatusRequest request, ServerCallContext context)
 	{
-		var result = await fundOrderCheckingService.GetAsync(new FundOrderCheckingQuery(
-			 ApiUrl: new(request.ApiUrl),
-			 AgentId: request.AgentId,
-			 AgentKey: request.AgentKey,
-			 TransactionId: request.TransactionId)).ConfigureAwait(false);
+		var result = await fundStatusService.GetAsync(
+			query: new FundStatusQuery(
+				ApiUrl: new(request.ApiUrl),
+				AgentId: request.AgentId,
+				AgentKey: request.AgentKey,
+				TransactionId: request.TransactionId),
+			cancellationToken: context.CancellationToken)
+			.ConfigureAwait(false);
 
-		return new FundOrderCheckingReply()
+		return new BaseReply()
 		{
-			Exist = result
+			State = result
 		};
 	}
 
 	public override async Task<FundReply> FundOut(FundRequest request, ServerCallContext context)
 	{
-		var result = await fundOutService.GetAsync(new FundOutQuery(
-			 ApiUrl: new(request.ApiUrl),
-			 AgentId: request.AgentId,
-			 AgentKey: request.AgentKey,
-			 PlayerCode: request.PlayerCode,
-			 TransactionId: request.TransactionId,
-			 Amount: request.Amount)).ConfigureAwait(false);
+		var result = await fundOutService.GetAsync(
+			query: new FundOutQuery(
+				ApiUrl: new(request.ApiUrl),
+				AgentId: request.AgentId,
+				AgentKey: request.AgentKey,
+				PlayerCode: request.PlayerCode,
+				TransactionId: request.TransactionId,
+				Amount: request.Amount),
+			cancellationToken: context.CancellationToken)
+			.ConfigureAwait(false);
 
 		return new FundReply()
 		{
-			Success = result.Success,
-			Message = result.Message ?? String.Empty,
 			TransactionId = result.TransactionId,
 			CoinBefore = result.CoinBefore,
 			CoinAfter = result.CoinAfter,
 			CurrencyBefore = result.CurrencyBefore,
-			CurrencyAfter = result.CurrencyAfter
+			CurrencyAfter = result.CurrencyAfter,
+			Resp = result.Resp
 		};
 	}
 
-	public override async Task<BalanceReply> GetBalance(BalanceRequest request, ServerCallContext context)
+	public override async Task<PlayerBalanceReply> PlayerBalance(PlayerBalanceRequest request, ServerCallContext context)
 	{
-		var result = await balanceService.GetAsync(new BalanceQuery(
-			 ApiUrl: new(request.ApiUrl),
-			 AgentId: request.AgentId,
-			 AgentKey: request.AgentKey,
-			 PlayerCode: request.PlayerCode)).ConfigureAwait(false);
-
-		return new BalanceReply()
-		{
-			Success = result.Success,
-			Message = result.Message ?? String.Empty,
-			IsPlayerExist = result.IsPlayerExist,
-			Balance = result.Balance
-		};
-	}
-
-	public override async Task<GameDetailReply> GetGameDetailUrl(GameDetailRequest request, ServerCallContext context)
-
-	{
-		var result = await gameDetailService
-			.GetAsync(
-				query: new GameDetailQuery(
-					ApiUrl: new(request.ApiUrl),
-					AgentId: request.AgentId,
-					AgentKey: request.AgentKey,
-					WagersId: request.WagersId,
-					Language: request.Language),
-				cancellationToken: context.CancellationToken)
+		var result = await playerBalanceService.GetAsync(
+			query: new PlayerBalanceQuery(
+				ApiUrl: new(request.ApiUrl),
+				AgentId: request.AgentId,
+				AgentKey: request.AgentKey,
+				PlayerCode: request.PlayerCode),
+			cancellationToken: context.CancellationToken)
 			.ConfigureAwait(false);
 
-		return new GameDetailReply()
+		return new PlayerBalanceReply()
 		{
-			Url = result ?? String.Empty,
+			IsPlayerExist = result.IsPlayerExist,
+			Balance = result.Balance,
+			Online = result.Online
 		};
 	}
 
-	public override async Task<GamePullRecordReply> GetGamePullRecord(GamePullRecordRequest request, ServerCallContext context)
+	public override async Task<GameRecordDetailReply> GameRecordDetail(GameRecordDetailRequest request, ServerCallContext context)
+
 	{
-		var gameRecords = await gameRecordService.QueryAsync(new GameRecordQuery(
-			ApiUrl: new(request.ApiUrl),
-			AgentId: request.AgentId,
-			AgentKey: request.AgentKey,
-			StartTime: request.StartTime.ToDateTimeOffset(),
-			EndTime: request.EndTime.ToDateTimeOffset(),
-			Page: request.Page,
-			PageLimit: request.PageLimit))
+		var result = await gameDetailService.GetAsync(
+			query: new GameRecordDetailQuery(
+				ApiUrl: new(request.ApiUrl),
+				AgentId: request.AgentId,
+				AgentKey: request.AgentKey,
+				WagersId: request.WagersId,
+				Language: request.Language),
+			cancellationToken: context.CancellationToken)
+			.ConfigureAwait(false);
+
+		return new GameRecordDetailReply()
+		{
+			Url = result
+		};
+	}
+
+	public override async Task<GameRecordReply> GameRecord(GameRecordRequest request, ServerCallContext context)
+	{
+		var gameRecords = await gameRecordService.QueryAsync(
+			query: new GameRecordQuery(
+				ApiUrl: new(request.ApiUrl),
+				AgentId: request.AgentId,
+				AgentKey: request.AgentKey,
+				StartTime: request.StartTime.ToDateTimeOffset(),
+				EndTime: request.EndTime.ToDateTimeOffset(),
+				Page: request.Page,
+				PageLimit: request.PageLimit),
+			cancellationToken: context.CancellationToken)
 			.ToArrayAsync()
 			.ConfigureAwait(false)
 			?? Enumerable.Empty<GameRecordResult>();
 
-		var reply = new GamePullRecordReply();
+		var reply = new GameRecordReply();
 
 		if (gameRecords.Any())
 		{
-			reply.Items.AddRange(gameRecords.Select(transaction => new GamePullRecord()
+			reply.Items.AddRange(gameRecords.Select(transaction => new GameRecordInfo()
 			{
 				Account = transaction.Account,
 				WagersId = transaction.WagersId,
@@ -165,7 +178,7 @@ public class GameInterfaceJiliGrpcService(
 				BetAmount = transaction.BetAmount,
 				PayoffTime = transaction.PayoffTime.ToTimestamp(),
 				PayoffAmount = transaction.PayoffAmount,
-				Status = (GamePullRecordStatus)transaction.Status,
+				Status = (GameRecordStatus)transaction.Status,
 				SettlementTime = transaction.SettlementTime.ToTimestamp(),
 				GameCategoryId = transaction.GameCategoryId,
 				Type = transaction.Type,
@@ -178,36 +191,57 @@ public class GameInterfaceJiliGrpcService(
 		return reply;
 	}
 
-	public override async Task<GameUrlReply> GetGameUrl(GameUrlRequest request, ServerCallContext context)
+	public override async Task<GameUrlReply> GameUrl(GameUrlRequest request, ServerCallContext context)
 	{
-		var result = await gameUrlService.GetAsync(new GameUrlQuery(
-			 ApiUrl: new(request.ApiUrl),
-			 AgentId: request.AgentId,
-			 AgentKey: request.AgentKey,
-			 PlayerCode: request.PlayerCode,
-			 ExternalGameId: request.ExternalGameId,
-			 Language: request.Language)).ConfigureAwait(false);
+		var result = await gameUrlService.GetAsync(
+			query: new GameUrlQuery(
+				ApiUrl: new(request.ApiUrl),
+				AgentId: request.AgentId,
+				AgentKey: request.AgentKey,
+				PlayerCode: request.PlayerCode,
+				ExternalGameId: request.ExternalGameId,
+				Language: request.Language),
+			cancellationToken: context.CancellationToken)
+			.ConfigureAwait(false);
 
 		return new GameUrlReply()
 		{
-			Success = result.Success,
-			Message = result.Message ?? String.Empty,
 			IsPlayerExist = result.IsPlayerExist,
 			GameUrl = result.GameUrl
 		};
 	}
 
-	public override async Task<BaseReply> KickPlayer(KickPlayerRequest request, ServerCallContext context)
+	public override async Task<BaseReply> PlayerLogout(PlayerLogoutRequest request, ServerCallContext context)
 	{
-		await kickMemberService.ExecuteAsync(new KickMemberCommand(
-			   ApiUrl: new(request.ApiUrl),
-			   AgentId: request.AgentId,
-			   AgentKey: request.AgentKey,
-			   PlayerCode: request.PlayerCode)).ConfigureAwait(false);
+		await playerLogoutService.ExecuteAsync(
+			command: new PlayerLogoutCommand(
+				ApiUrl: new(request.ApiUrl),
+				AgentId: request.AgentId,
+				AgentKey: request.AgentKey,
+				PlayerCode: request.PlayerCode),
+			 cancellationToken: context.CancellationToken)
+			.ConfigureAwait(false);
 
 		return new BaseReply()
 		{
-			Success = true
+			State = true
+		};
+	}
+
+	public override async Task<PlayerOnlineReply> PlayerOnline(PlayerOnlineRequest request, ServerCallContext context)
+	{
+		var online = await playerOnlineService.GetAsync(
+			query: new PlayerOnlineQuery(
+				ApiUrl: new(request.ApiUrl),
+				AgentId: request.AgentId,
+				AgentKey: request.AgentKey,
+				PlayerCode: request.PlayerCode),
+			 cancellationToken: context.CancellationToken)
+			.ConfigureAwait(false);
+
+		return new PlayerOnlineReply()
+		{
+			Online = online
 		};
 	}
 }
